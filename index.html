@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>IronBalls - Herramienta de Bloqueo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #0a1628;
+            color: #fff;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .header-version {
+            font-size: 10px;
+            color: #64748b;
+            margin-left: 4px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+            padding: 0 8px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-title {
+                font-size: 14px;
+            }
+            
+            .logo {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+            
+            body {
+                padding: 8px;
+            }
+        }
+
+        .card {
+            background: #0f1c2e;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #1e293b;
+        }
+
+        .card-header {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .spread-types-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .spread-types-grid {
+                gap: 6px;
+            }
+        }
+
+        .spread-type {
+            background: #1e293b;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .spread-type:hover {
+            background: #243447;
+        }
+
+        .spread-type.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .spread-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .spread-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .spread-sublabel {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .step-hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .step-visible {
+            display: block;
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Animaciones de Entrada */
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-20px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animación para el resultado final - Counter */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Success Flash */
+        @keyframes successFlash {
+            0%, 100% {
+                background: rgba(34, 197, 94, 0.05);
+            }
+            50% {
+                background: rgba(34, 197, 94, 0.2);
+            }
+        }
+
+        .success-flash {
+            animation: successFlash 0.6s ease-in-out;
+        }
+
+        /* Error Shake */
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .error-shake {
+            animation: errorShake 0.5s;
+            border-color: #ef4444 !important;
+        }
+
+        /* Animación de Check Mark */
+        @keyframes checkMark {
+            0% {
+                stroke-dashoffset: 100;
+            }
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Progress Bar */
+        @keyframes progressBar {
+            from {
+                width: 0%;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: #1e293b;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Gradient Flow Background */
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .card {
+            background: linear-gradient(135deg, #0f1c2e, #1a2332, #0f1c2e);
+            background-size: 200% 200%;
+            animation: gradientFlow 8s ease infinite;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #1e293b;
+        }
+
+        /* Breathing Animation para el big display */
+        @keyframes breathing {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.2);
+            }
+        }
+
+        .big-display {
+            background: linear-gradient(135deg, #1e293b, #0f1c2e);
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            animation: breathing 3s ease-in-out infinite;
+        }
+
+        /* Counter Animation para números */
+        .big-value {
+            font-size: 40px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 4px;
+            animation: countUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Check mark SVG animation */
+        .check-mark {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+        }
+
+        .check-mark-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: checkMarkCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .check-mark-check {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkMarkCheck 0.3s 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        @keyframes checkMarkCircle {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes checkMarkCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Loading Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        /* Flip animation para cambio de unidades */
+        @keyframes flipIn {
+            from {
+                transform: perspective(400px) rotateX(90deg);
+                opacity: 0;
+            }
+            to {
+                transform: perspective(400px) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .flip-in {
+            animation: flipIn 0.4s ease-out;
+        }
+
+        /* Glow effect para resultado final */
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(34, 197, 94, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 30px rgba(34, 197, 94, 0.2);
+            }
+        }
+
+        .result-panel.success {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .step-description {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .step-description strong {
+            color: #60a5fa;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="number"], input[type="text"] {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 16px;
+            -webkit-appearance: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            input[type="number"], input[type="text"] {
+                font-size: 16px;
+                padding: 14px 12px;
+            }
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #243447;
+        }
+
+        input[type="number"]::placeholder, input[type="text"]::placeholder {
+            color: #475569;
+        }
+
+        input.readonly {
+            background: #0f1c2e;
+            border-color: #1e293b;
+            cursor: not-allowed;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .input-prefix {
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .strike-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .big-display {
+            background: linear-gradient(135deg, #1e293b, #0f1c2e);
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .big-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .big-value {
+            font-size: 40px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .big-currency {
+            font-size: 28px;
+            color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            .big-display {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .big-value {
+                font-size: 36px;
+            }
+            
+            .big-currency {
+                font-size: 24px;
+            }
+        }
+
+        .result-panel {
+            background: #0f1c2e;
+            border-radius: 12px;
+            padding: 0;
+            border: 1px solid #1e293b;
+            overflow: hidden;
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #1e293b, #0f1c2e);
+            padding: 16px 20px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .result-title {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .result-value-large {
+            font-size: 36px;
+            font-weight: 700;
+            color: #22c55e;
+            line-height: 1;
+        }
+
+        .result-value-large.negative {
+            color: #ef4444;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .result-badge.credit {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .result-badge.debit {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .result-body {
+            padding: 20px;
+        }
+
+        .result-steps {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .result-step {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .result-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-step strong {
+            color: #fff;
+        }
+
+        .result-step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-right: 8px;
+        }
+
+        .formula-box {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #94a3b8;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-title {
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        .formula-line {
+            padding: 4px 0;
+            border-left: 2px solid #334155;
+            padding-left: 12px;
+            margin: 4px 0;
+        }
+
+        .formula-result {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .info-item {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .info-item-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .info-item-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        #results {
+            display: none;
+        }
+
+        #results.visible {
+            display: block;
+        }
+
+        .spread-structure {
+            background: rgba(100, 116, 139, 0.1);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .spread-structure-title {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .spread-structure-item {
+            font-size: 13px;
+            color: #cbd5e1;
+            padding: 4px 0;
+        }
+
+        .spread-structure-item strong {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">⚙️</div>
+            <div>
+                <span class="header-title">Herramienta de Bloqueo IronBalls</span>
+                <span class="header-version">v1.0</span>
+            </div>
+        </div>
+        <div class="subtitle">Calcula el crédito/débito necesario para asegurar ganancia o limitar pérdida</div>
+        
+        <!-- Barra de Progreso -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 14%;"></div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Panel Izquierdo - Inputs -->
+            <div class="card">
+                <div class="card-header">Parámetros de la Operación</div>
+
+                <!-- Paso 1: Tipo de Spread -->
+                <div class="input-section step-visible" id="step1">
+                    <label class="input-label">Paso 1: Tipo de Spread Inicial</label>
+                    <div class="step-description">
+                        <strong>¿Qué hacer?</strong> Selecciona el tipo de spread que abriste inicialmente. <strong>PCS/CCS</strong> si recibiste crédito, <strong>PDS/CDS</strong> si pagaste débito.
+                    </div>
+                    <div class="spread-types-grid">
+                        <div class="spread-type active" id="typePCS" data-type="pcs">
+                            <div class="spread-icon">🟢</div>
+                            <div class="spread-label">Put Credit</div>
+                            <div class="spread-sublabel">PCS</div>
+                        </div>
+                        <div class="spread-type" id="typeCCS" data-type="ccs">
+                            <div class="spread-icon">🔵</div>
+                            <div class="spread-label">Call Credit</div>
+                            <div class="spread-sublabel">CCS</div>
+                        </div>
+                        <div class="spread-type" id="typePDS" data-type="pds">
+                            <div class="spread-icon">🟠</div>
+                            <div class="spread-label">Put Debit</div>
+                            <div class="spread-sublabel">PDS</div>
+                        </div>
+                        <div class="spread-type" id="typeCDS" data-type="cds">
+                            <div class="spread-icon">🔴</div>
+                            <div class="spread-label">Call Debit</div>
+                            <div class="spread-sublabel">CDS</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Unidad de medida -->
+                <div class="input-section step-hidden" id="step2">
+                    <label class="input-label">Paso 2: Unidad de Medida</label>
+                    <div class="step-description">
+                        <strong>¿Qué hacer?</strong> Elige si prefieres trabajar en <strong>Puntos</strong> (como en el mercado: 1.80 pts) o en <strong>Dólares</strong> directos ($180).
+                    </div>
+                    <div class="spread-types-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="spread-type active" id="unitPoints" data-unit="points" style="padding: 10px;">
+                            <div class="spread-icon">📊</div>
+                            <div class="spread-label">Puntos</div>
+                            <div class="spread-sublabel">1 pt = $100</div>
+                        </div>
+                        <div class="spread-type" id="unitDollars" data-unit="dollars" style="padding: 10px;">
+                            <div class="spread-icon">💵</div>
+                            <div class="spread-label">Dólares</div>
+                            <div class="spread-sublabel">Directos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Activo -->
+                <div class="input-section step-hidden" id="step3">
+                    <label class="input-label">Paso 3: Activo</label>
+                    <div class="step-description">
+                        <strong>Activo:</strong> Esta herramienta está optimizada para <strong>SPX</strong> (S&P 500 Index).
+                    </div>
+                    <input type="text" value="SPX" readonly class="readonly">
+                </div>
+
+                <!-- Paso 4: Strikes -->
+                <div class="input-section step-hidden" id="step4">
+                    <label class="input-label">Paso 4: Strikes del Spread Inicial</label>
+                    <div class="step-description">
+                        <strong>¿Qué hacer?</strong> Ingresa los strikes de tu spread. <strong>Buy</strong> es el strike que compraste, <strong>Sell</strong> es el que vendiste.
+                    </div>
+                    <div class="strike-grid">
+                        <div>
+                            <input type="number" id="strikeBuy" placeholder="Ej: 6930" step="0.5" inputmode="decimal">
+                            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Compra</div>
+                        </div>
+                        <div>
+                            <input type="number" id="strikeSell" placeholder="Ej: 6935" step="0.5" inputmode="decimal">
+                            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Venta</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 5: Ancho del Spread -->
+                <div class="input-section step-hidden" id="step5">
+                    <label class="input-label">Paso 5: Ancho del Spread</label>
+                    <div class="step-description">
+                        <strong>Calculado automáticamente:</strong> La diferencia entre tus strikes determina el valor máximo del spread.
+                    </div>
+                    <div class="input-row">
+                        <input type="number" id="strikeWidth" placeholder="5" value="5" step="0.5" readonly style="background: #0a1628; border-color: #1e293b;">
+                        <span class="input-prefix">pts = <span style="color: #22c55e;" id="boxValueDisplay">$500</span></span>
+                    </div>
+                </div>
+
+                <!-- Paso 6: Ganancia Objetivo -->
+                <div class="input-section step-hidden" id="step6">
+                    <label class="input-label">Paso 6: Objetivo del Bloqueo</label>
+                    <div class="step-description">
+                        <strong>¿Qué hacer?</strong> Selecciona si quieres <strong>asegurar una ganancia</strong> (si vas ganando) o <strong>limitar una pérdida</strong> (si vas perdiendo).
+                    </div>
+                    
+                    <!-- Selector de objetivo -->
+                    <div class="spread-types-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                        <div class="spread-type active" id="objectiveProfit" data-objective="profit" style="padding: 10px;">
+                            <div class="spread-icon">💰</div>
+                            <div class="spread-label">Asegurar Ganancia</div>
+                            <div class="spread-sublabel">Vas ganando</div>
+                        </div>
+                        <div class="spread-type" id="objectiveLoss" data-objective="loss" style="padding: 10px;">
+                            <div class="spread-icon">🛡️</div>
+                            <div class="spread-label">Limitar Pérdida</div>
+                            <div class="spread-sublabel">Vas perdiendo</div>
+                        </div>
+                    </div>
+
+                    <label class="input-label" id="targetLabel" style="margin-top: 16px;">Monto (puntos)</label>
+                    <input type="number" id="targetAmount" placeholder="0.50" step="0.01" inputmode="decimal">
+                    <div style="font-size: 10px; color: #64748b; margin-top: 4px;" id="targetHint">0.50 puntos = $50</div>
+                </div>
+
+                <!-- Paso 7: Crédito/Débito Recibido -->
+                <div class="input-section step-hidden" id="step7">
+                    <label class="input-label" id="amountLabel">Paso 7: Crédito Recibido (puntos)</label>
+                    <div class="step-description">
+                        <strong>¿Qué hacer?</strong> Ingresa el <strong id="amountDesc">crédito que recibiste</strong> cuando abriste tu spread inicial.
+                    </div>
+                    <input type="number" id="initialAmount" placeholder="1.80" step="0.01" inputmode="decimal">
+                    <div style="font-size: 10px; color: #64748b; margin-top: 4px;" id="amountHint">1 punto = $100</div>
+                </div>
+            </div>
+
+            <!-- Panel Derecho - Resultados -->
+            <div>
+                <!-- Crédito/Débito Requerido -->
+                <div class="big-display">
+                    <div class="big-label" id="bigLabel">Crédito Requerido</div>
+                    <div class="big-value">
+                        <span id="requiredAmount">0.00</span>
+                        <span class="big-currency" id="bigUnit">pts</span>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 8px;" id="bigConversion">1 punto = $100</div>
+                </div>
+
+                <!-- Resultado del Bloqueo -->
+                <div id="results">
+                    <div class="result-panel">
+                        <div class="result-header">
+                            <div class="result-title" id="resultTitle">Estructura del Bloqueo</div>
+                            <div class="result-value-large" id="resultValue">$0.00</div>
+                            <div class="result-badge credit" id="resultBadge">GANANCIA ASEGURADA</div>
+                        </div>
+                        <div class="result-body">
+                            <div class="spread-structure" id="spreadStructure"></div>
+                            <div class="result-steps" id="resultSteps"></div>
+                            <div class="formula-box" id="resultFormula"></div>
+                            <div class="info-grid" id="resultInfo"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">🎯</div>
+                    Ingresa los strikes y parámetros<br>para calcular tu bloqueo
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSpreadType = 'pcs'; // pcs, ccs, pds, cds
+        let currentUnit = 'points'; // points or dollars
+        let currentObjective = 'profit'; // profit or loss
+
+        // Elementos del DOM
+        const inputs = {
+            strikeBuy: document.getElementById('strikeBuy'),
+            strikeSell: document.getElementById('strikeSell'),
+            strikeWidth: document.getElementById('strikeWidth'),
+            targetAmount: document.getElementById('targetAmount'),
+            initialAmount: document.getElementById('initialAmount')
+        };
+
+        const spreadTypes = document.querySelectorAll('[data-type]');
+        const unitButtons = document.querySelectorAll('[data-unit]');
+        const unitPoints = document.getElementById('unitPoints');
+        const unitDollars = document.getElementById('unitDollars');
+        const objectiveProfit = document.getElementById('objectiveProfit');
+        const objectiveLoss = document.getElementById('objectiveLoss');
+        const amountLabel = document.getElementById('amountLabel');
+        const targetLabel = document.getElementById('targetLabel');
+        const amountHint = document.getElementById('amountHint');
+        const targetHint = document.getElementById('targetHint');
+        const bigLabel = document.getElementById('bigLabel');
+        const bigUnit = document.getElementById('bigUnit');
+        const bigConversion = document.getElementById('bigConversion');
+        const requiredAmount = document.getElementById('requiredAmount');
+        const boxValueDisplay = document.getElementById('boxValueDisplay');
+        const resultsDiv = document.getElementById('results');
+        const emptyState = document.getElementById('emptyState');
+        const resultTitle = document.getElementById('resultTitle');
+
+        // Event listeners para unidad de medida
+        unitPoints.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentUnit = 'points';
+            unitPoints.classList.add('active');
+            unitDollars.classList.remove('active');
+            updateUnitLabels();
+            checkSteps();
+            calculate();
+        });
+
+        unitDollars.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentUnit = 'dollars';
+            unitDollars.classList.add('active');
+            unitPoints.classList.remove('active');
+            updateUnitLabels();
+            checkSteps();
+            calculate();
+        });
+
+        // Event listeners para objetivo (ganancia vs pérdida)
+        objectiveProfit.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentObjective = 'profit';
+            objectiveProfit.classList.add('active');
+            objectiveLoss.classList.remove('active');
+            updateObjectiveLabels();
+            calculate();
+        });
+
+        objectiveLoss.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentObjective = 'loss';
+            objectiveLoss.classList.add('active');
+            objectiveProfit.classList.remove('active');
+            updateObjectiveLabels();
+            calculate();
+        });
+
+        // Event listeners para tipo de spread
+        spreadTypes.forEach(type => {
+            // Solo agregar listener si tiene data-type (no data-unit)
+            if (type.dataset.type && !type.dataset.unit) {
+                type.addEventListener('click', function() {
+                    // Solo remover active de los spread types, no de los unit buttons
+                    document.querySelectorAll('[data-type]:not([data-unit])').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSpreadType = this.dataset.type;
+                    updateLabels();
+                    checkSteps();
+                    calculate();
+                });
+            }
+        });
+
+        // Event listeners para inputs
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', function() {
+                checkSteps();
+                calculate();
+            });
+        });
+
+        // Calcular ancho cuando cambian los strikes
+        inputs.strikeBuy.addEventListener('input', updateWidth);
+        inputs.strikeSell.addEventListener('input', updateWidth);
+
+        // Calcular al cargar la página
+        window.addEventListener('load', function() {
+            updateLabels();
+            updateUnitLabels();
+            checkSteps();
+            calculate();
+        });
+
+        // Función para verificar qué pasos mostrar
+        function checkSteps() {
+            let completedSteps = 0;
+            const totalSteps = 7;
+            
+            // Paso 1 siempre visible (tipo de spread)
+            showStep('step1');
+            completedSteps++;
+            
+            // Paso 2: mostrar después de seleccionar tipo
+            if (currentSpreadType) {
+                showStep('step2');
+                completedSteps++;
+            }
+            
+            // Paso 3: mostrar después de seleccionar unidad
+            if (currentUnit) {
+                showStep('step3');
+                completedSteps++;
+            }
+            
+            // Paso 4: mostrar después de paso 3 (activo siempre es SPX)
+            showStep('step4');
+            completedSteps++;
+            
+            // Paso 5: mostrar cuando ambos strikes estén ingresados
+            const buy = parseFloat(inputs.strikeBuy.value);
+            const sell = parseFloat(inputs.strikeSell.value);
+            if (buy && sell) {
+                showStep('step5');
+                completedSteps++;
+            } else {
+                hideStep('step5');
+            }
+            
+            // Paso 6: mostrar cuando el ancho esté calculado
+            const width = parseFloat(inputs.strikeWidth.value);
+            if (width && buy && sell) {
+                showStep('step6');
+                completedSteps++;
+            } else {
+                hideStep('step6');
+            }
+            
+            // Paso 7: mostrar cuando la ganancia objetivo esté ingresada
+            const target = parseFloat(inputs.targetAmount.value);
+            if (target && width) {
+                showStep('step7');
+                completedSteps++;
+                // Actualizar descripción dinámica según tipo
+                const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+                document.getElementById('amountDesc').textContent = isCredit ? 
+                    'crédito que recibiste' : 'débito que pagaste';
+            } else {
+                hideStep('step7');
+            }
+            
+            // Actualizar barra de progreso
+            updateProgressBar(completedSteps, totalSteps);
+        }
+
+        function updateProgressBar(completed, total) {
+            const percentage = (completed / total) * 100;
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+            }
+        }
+
+        function showStep(stepId) {
+            const step = document.getElementById(stepId);
+            if (step && step.classList.contains('step-hidden')) {
+                step.classList.remove('step-hidden');
+                step.classList.add('step-visible');
+            } else if (step && !step.classList.contains('step-visible')) {
+                step.classList.add('step-visible');
+            }
+        }
+
+        function hideStep(stepId) {
+            const step = document.getElementById(stepId);
+            if (step) {
+                step.classList.remove('step-visible');
+                step.classList.add('step-hidden');
+            }
+        }
+
+        function updateUnitLabels() {
+            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+            const spreadName = isCredit ? 'Crédito' : 'Débito';
+            
+            // Agregar animación flip al cambiar unidad
+            const bigValue = document.querySelector('.big-value');
+            if (bigValue) {
+                bigValue.classList.add('flip-in');
+                setTimeout(() => bigValue.classList.remove('flip-in'), 400);
+            }
+            
+            if (currentUnit === 'points') {
+                updateObjectiveLabels(); // Usa función que considera el objetivo
+                targetHint.textContent = '0.50 puntos = $50';
+                amountLabel.textContent = `${spreadName} Recibido (puntos)`;
+                amountHint.textContent = '1 punto = $100';
+                bigLabel.textContent = `${spreadName} Requerido`;
+                bigUnit.textContent = 'pts';
+                bigConversion.textContent = '1 punto = $100';
+                
+                inputs.targetAmount.placeholder = '0.50';
+                inputs.initialAmount.placeholder = '1.80';
+            } else {
+                updateObjectiveLabels(); // Usa función que considera el objetivo
+                targetHint.textContent = '$50 = 0.50 puntos';
+                amountLabel.textContent = `${spreadName} Recibido ($)`;
+                amountHint.textContent = '$100 = 1 punto';
+                bigLabel.textContent = `${spreadName} Requerido`;
+                bigUnit.textContent = '$';
+                bigConversion.textContent = '$100 = 1 punto';
+                
+                inputs.targetAmount.placeholder = '50';
+                inputs.initialAmount.placeholder = '180';
+            }
+        }
+
+        function updateObjectiveLabels() {
+            const isPoints = currentUnit === 'points';
+            const unit = isPoints ? 'puntos' : 'dólares';
+            
+            if (currentObjective === 'profit') {
+                targetLabel.textContent = `Ganancia a Asegurar (${unit})`;
+            } else {
+                targetLabel.textContent = `Pérdida Máxima (${unit})`;
+            }
+        }
+
+        function updateLabels() {
+            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+            updateUnitLabels();
+        }
+
+        function updateWidth() {
+            const buy = parseFloat(inputs.strikeBuy.value);
+            const sell = parseFloat(inputs.strikeSell.value);
+            
+            if (buy && sell) {
+                const width = Math.abs(sell - buy);
+                inputs.strikeWidth.value = width.toFixed(1);
+                checkSteps();
+                calculate();
+            }
+        }
+
+        function calculate() {
+            const strikeBuy = parseFloat(inputs.strikeBuy.value);
+            const strikeSell = parseFloat(inputs.strikeSell.value);
+            const strikeWidth = parseFloat(inputs.strikeWidth.value);
+            let targetAmount = parseFloat(inputs.targetAmount.value);
+            let initialAmount = parseFloat(inputs.initialAmount.value);
+
+            // Convertir a puntos si está en dólares
+            if (currentUnit === 'dollars') {
+                targetAmount = targetAmount / 100;
+                initialAmount = initialAmount / 100;
+            }
+
+            // Actualizar display del valor del box
+            if (strikeWidth) {
+                const boxValue = strikeWidth * 100;
+                boxValueDisplay.textContent = '$' + boxValue.toFixed(0);
+            }
+
+            // Validar datos básicos
+            if (!strikeBuy || !strikeSell || !strikeWidth || !targetAmount || !initialAmount) {
+                resultsDiv.classList.remove('visible');
+                emptyState.style.display = 'block';
+                requiredAmount.textContent = '0.00';
+                return;
+            }
+
+            // Calcular valor del box en dólares
+            const boxValueDollars = strikeWidth * 100;
+            // Ancho en puntos
+            const boxWidthPoints = strikeWidth;
+            
+            // Determinar si es crédito o débito
+            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+
+            // Calcular crédito/débito necesario en el spread contrario (en puntos)
+            let secondAmountPoints;
+            let calculationSteps = [];
+            
+            if (isCredit) {
+                if (currentUnit === 'points') {
+                    calculationSteps.push(`Crédito Inicial = ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})`);
+                    calculationSteps.push(`Valor del Spread = ${strikeWidth} pts = $${boxValueDollars.toFixed(2)}`);
+                    calculationSteps.push(`Ganancia Objetivo = ${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`);
+                    calculationSteps.push(`Crédito Necesario = Ganancia + Spread - Crédito Inicial`);
+                    calculationSteps.push(`Crédito Necesario = ${targetAmount.toFixed(2)} + ${boxWidthPoints.toFixed(2)} - ${initialAmount.toFixed(2)}`);
+                } else {
+                    calculationSteps.push(`Crédito Inicial = $${(initialAmount * 100).toFixed(2)} (${initialAmount.toFixed(2)} pts)`);
+                    calculationSteps.push(`Valor del Spread = $${boxValueDollars.toFixed(2)} (${strikeWidth} pts)`);
+                    calculationSteps.push(`Ganancia Objetivo = $${(targetAmount * 100).toFixed(2)} (${targetAmount.toFixed(2)} pts)`);
+                    calculationSteps.push(`Crédito Necesario = Ganancia + Spread - Crédito Inicial`);
+                    calculationSteps.push(`Crédito Necesario = $${(targetAmount * 100).toFixed(2)} + $${boxValueDollars.toFixed(2)} - $${(initialAmount * 100).toFixed(2)}`);
+                }
+                
+                secondAmountPoints = targetAmount + boxWidthPoints - initialAmount;
+                
+                if (currentUnit === 'points') {
+                    calculationSteps.push(`Crédito Necesario = ${secondAmountPoints.toFixed(2)} pts ($${(secondAmountPoints * 100).toFixed(2)})`);
+                } else {
+                    calculationSteps.push(`Crédito Necesario = $${(secondAmountPoints * 100).toFixed(2)} (${secondAmountPoints.toFixed(2)} pts)`);
+                }
+            } else {
+                if (currentUnit === 'points') {
+                    calculationSteps.push(`Débito Inicial = ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})`);
+                    calculationSteps.push(`Valor del Spread = ${strikeWidth} pts = $${boxValueDollars.toFixed(2)}`);
+                    calculationSteps.push(`Ganancia Objetivo = ${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`);
+                    calculationSteps.push(`Débito Necesario = Spread - Débito Inicial - Ganancia`);
+                    calculationSteps.push(`Débito Necesario = ${boxWidthPoints.toFixed(2)} - ${initialAmount.toFixed(2)} - ${targetAmount.toFixed(2)}`);
+                } else {
+                    calculationSteps.push(`Débito Inicial = $${(initialAmount * 100).toFixed(2)} (${initialAmount.toFixed(2)} pts)`);
+                    calculationSteps.push(`Valor del Spread = $${boxValueDollars.toFixed(2)} (${strikeWidth} pts)`);
+                    calculationSteps.push(`Ganancia Objetivo = $${(targetAmount * 100).toFixed(2)} (${targetAmount.toFixed(2)} pts)`);
+                    calculationSteps.push(`Débito Necesario = Spread - Débito Inicial - Ganancia`);
+                    calculationSteps.push(`Débito Necesario = $${boxValueDollars.toFixed(2)} - $${(initialAmount * 100).toFixed(2)} - $${(targetAmount * 100).toFixed(2)}`);
+                }
+                
+                secondAmountPoints = boxWidthPoints - initialAmount - targetAmount;
+                
+                if (currentUnit === 'points') {
+                    calculationSteps.push(`Débito Necesario = ${secondAmountPoints.toFixed(2)} pts ($${(secondAmountPoints * 100).toFixed(2)})`);
+                } else {
+                    calculationSteps.push(`Débito Necesario = $${(secondAmountPoints * 100).toFixed(2)} (${secondAmountPoints.toFixed(2)} pts)`);
+                }
+            }
+
+            // Actualizar display grande
+            const displayValue = currentUnit === 'points' ? secondAmountPoints : secondAmountPoints * 100;
+            requiredAmount.textContent = displayValue.toFixed(2);
+
+            // Validar factibilidad
+            const isFeasible = secondAmountPoints > 0 && secondAmountPoints < boxWidthPoints;
+
+            // Generar estructura del spread contrario
+            const oppositeSpread = generateOppositeSpread(strikeBuy, strikeSell);
+
+            // Mostrar resultados
+            if (isFeasible) {
+                displayResults(secondAmountPoints, targetAmount, boxValueDollars, initialAmount, strikeWidth,
+                              calculationSteps, oppositeSpread, strikeBuy, strikeSell, boxWidthPoints);
+            } else {
+                displayWarning(boxValueDollars, initialAmount, strikeWidth, secondAmountPoints, boxWidthPoints);
+            }
+        }
+
+        function generateOppositeSpread(buy, sell) {
+            // Determinar el spread contrario según el tipo
+            let opposite = {};
+            
+            switch(currentSpreadType) {
+                case 'pcs': // Put Credit Spread → Call Debit Spread
+                    opposite.type = 'Call Debit Spread (CDS)';
+                    opposite.buy = sell;
+                    opposite.sell = buy;
+                    opposite.icon = '🔴';
+                    break;
+                case 'ccs': // Call Credit Spread → Put Debit Spread
+                    opposite.type = 'Put Debit Spread (PDS)';
+                    opposite.buy = sell;
+                    opposite.sell = buy;
+                    opposite.icon = '🟠';
+                    break;
+                case 'pds': // Put Debit Spread → Call Credit Spread
+                    opposite.type = 'Call Credit Spread (CCS)';
+                    opposite.buy = sell;
+                    opposite.sell = buy;
+                    opposite.icon = '🔵';
+                    break;
+                case 'cds': // Call Debit Spread → Put Credit Spread
+                    opposite.type = 'Put Credit Spread (PCS)';
+                    opposite.buy = sell;
+                    opposite.sell = buy;
+                    opposite.icon = '🟢';
+                    break;
+            }
+            
+            return opposite;
+        }
+
+        function getSpreadTypeName() {
+            switch(currentSpreadType) {
+                case 'pcs': return 'Put Credit Spread (PCS)';
+                case 'ccs': return 'Call Credit Spread (CCS)';
+                case 'pds': return 'Put Debit Spread (PDS)';
+                case 'cds': return 'Call Debit Spread (CDS)';
+            }
+        }
+
+        function getSpreadIcon() {
+            switch(currentSpreadType) {
+                case 'pcs': return '🟢';
+                case 'ccs': return '🔵';
+                case 'pds': return '🟠';
+                case 'cds': return '🔴';
+            }
+        }
+
+        function displayResults(secondAmount, targetAmount, boxValue, initialAmount, strikeWidth,
+                               calculationSteps, oppositeSpread, strikeBuy, strikeSell, boxWidthPoints) {
+            emptyState.style.display = 'none';
+            resultsDiv.classList.add('visible');
+            resultsDiv.classList.add('success');
+
+            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+            
+            const resultValue = document.getElementById('resultValue');
+            const resultBadge = document.getElementById('resultBadge');
+            
+            // Usar el objetivo seleccionado por el usuario
+            const isProfit = currentObjective === 'profit';
+            const badgeText = isProfit ? '✓ GANANCIA ASEGURADA' : '⚠️ PÉRDIDA LIMITADA';
+            const badgeClass = isProfit ? 'credit success-flash' : 'debit';
+            
+            resultTitle.textContent = 'Estructura del Bloqueo';
+            resultValue.textContent = `${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`;
+            resultValue.classList.remove('negative');
+            resultBadge.textContent = badgeText;
+            resultBadge.className = `result-badge ${badgeClass}`;
+
+            // Estructura del spread con explicación detallada
+            const structureHtml = `
+                <div class="spread-structure-title">📊 Configuración Completa del Bloqueo</div>
+                
+                <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; margin-bottom: 16px; border-radius: 6px; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+                    <strong style="color: #60a5fa;">💡 Qué hacer ahora:</strong><br>
+                    Para completar el bloqueo, debes abrir el <strong>Spread Contrario</strong> que se muestra abajo. Este spread neutraliza tu posición original y asegura tu ${targetAmount >= 0 ? 'ganancia' : 'pérdida limitada'}.
+                </div>
+
+                <div class="spread-structure-item" style="background: rgba(100, 116, 139, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">✅ YA TIENES ABIERTO:</div>
+                    ${getSpreadIcon()} <strong>Spread Inicial:</strong> ${getSpreadTypeName()}<br>
+                    <div style="margin-left: 24px; margin-top: 4px; color: #94a3b8; font-size: 13px;">
+                        • Buy ${strikeBuy} / Sell ${strikeSell}<br>
+                        • ${isCredit ? 'Recibiste' : 'Pagaste'}: ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})
+                    </div>
+                </div>
+                
+                <div class="spread-structure-item" style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); padding: 12px; border-radius: 8px;">
+                    <div style="font-size: 11px; color: #22c55e; margin-bottom: 6px;">🎯 DEBES ABRIR AHORA:</div>
+                    ${oppositeSpread.icon} <strong style="color: #22c55e;">Spread Contrario:</strong> ${oppositeSpread.type}<br>
+                    <div style="margin-left: 24px; margin-top: 4px; color: #94a3b8; font-size: 13px;">
+                        • <strong>Buy ${oppositeSpread.buy}</strong> / <strong>Sell ${oppositeSpread.sell}</strong><br>
+                        • Debes ${isCredit ? 'RECIBIR' : 'PAGAR'}: <strong style="color: #22c55e;">${secondAmount.toFixed(2)} pts ($${(secondAmount * 100).toFixed(2)})</strong><br>
+                        • <span style="color: #64748b; font-size: 12px;">Esto neutraliza tu posición y bloquea el resultado</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('spreadStructure').innerHTML = structureHtml;
+
+            // Steps con explicación más clara
+            const actionWord = isProfit ? 'Ganancia' : 'Pérdida limitada';
+            const stepsHtml = `
+                <div class="result-step">
+                    <span class="result-step-number">1</span>
+                    <strong>Spread inicial (YA ABIERTO):</strong> ${isCredit ? 'Recibiste' : 'Pagaste'} ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})
+                </div>
+                <div class="result-step">
+                    <span class="result-step-number">2</span>
+                    <strong>Spread contrario (ABRIR AHORA):</strong> ${isCredit ? 'Debes recibir' : 'Debes pagar'} <strong style="color: #22c55e;">${secondAmount.toFixed(2)} pts ($${(secondAmount * 100).toFixed(2)})</strong>
+                </div>
+                <div class="result-step">
+                    <span class="result-step-number">3</span>
+                    <strong>Al vencimiento:</strong> ${actionWord} de <strong style="color: ${isProfit ? '#22c55e' : '#f59e0b'};">${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})</strong> sin importar el precio del SPX
+                </div>
+            `;
+            document.getElementById('resultSteps').innerHTML = stepsHtml;
+
+            // Formula con pasos de cálculo
+            let formulaHtml = '<div class="formula-title">🔢 Cálculo Detallado:</div>';
+            calculationSteps.forEach((step, index) => {
+                const isResult = index === calculationSteps.length - 1;
+                formulaHtml += `<div class="formula-line ${isResult ? 'formula-result' : ''}">${step}</div>`;
+            });
+            document.getElementById('resultFormula').innerHTML = formulaHtml;
+
+            // Info Grid
+            const totalAmount = initialAmount + secondAmount;
+            const resultLabel = isProfit ? 'Ganancia Neta' : 'Pérdida Máxima';
+            const resultColor = isProfit ? '#22c55e' : '#f59e0b';
+            
+            const infoHtml = `
+                <div class="info-item">
+                    <div class="info-item-label">Ancho del Spread</div>
+                    <div class="info-item-value">${strikeWidth.toFixed(1)} pts</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label">Valor del Spread</div>
+                    <div class="info-item-value">$${boxValue.toFixed(2)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label">${isCredit ? 'Crédito Total' : 'Débito Total'}</div>
+                    <div class="info-item-value">${totalAmount.toFixed(2)} pts</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label">${resultLabel}</div>
+                    <div class="info-item-value" style="color: ${resultColor};">${targetAmount.toFixed(2)} pts</div>
+                </div>
+            `;
+            document.getElementById('resultInfo').innerHTML = infoHtml;
+        }
+
+        function displayWarning(boxValue, initialAmount, strikeWidth, secondAmount, boxWidthPoints) {
+            emptyState.style.display = 'none';
+            resultsDiv.classList.add('visible');
+            resultsDiv.classList.remove('success');
+
+            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+
+            resultTitle.textContent = '⚠️ Ajuste Necesario';
+            document.getElementById('resultValue').textContent = secondAmount <= 0 ? 'No factible' : `${secondAmount.toFixed(2)} pts`;
+            document.getElementById('resultValue').classList.add('negative');
+            document.getElementById('resultBadge').textContent = '⚠️ REVISAR PARÁMETROS';
+            document.getElementById('resultBadge').className = 'result-badge debit error-shake';
+
+            document.getElementById('spreadStructure').innerHTML = '';
+
+            let warningMessage = '';
+            if (secondAmount <= 0) {
+                warningMessage = `⚠️ Con estos parámetros, el ${isCredit ? 'crédito' : 'débito'} necesario sería negativo o cero, lo cual no es factible.`;
+            } else if (secondAmount >= boxWidthPoints) {
+                warningMessage = `⚠️ El ${isCredit ? 'crédito' : 'débito'} necesario (${secondAmount.toFixed(2)} pts) supera el ancho del spread (${boxWidthPoints} pts), lo cual no es factible.`;
+            }
+
+            document.getElementById('resultSteps').innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <div style="font-size: 16px; color: #ef4444; font-weight: 600; margin-bottom: 8px;">
+                        ${warningMessage}
+                    </div>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 16px;">
+                    <div style="font-size: 14px; color: #60a5fa; font-weight: 600; margin-bottom: 8px;">
+                        💡 Sugerencias:
+                    </div>
+                    <div style="font-size: 13px; color: #94a3b8; line-height: 1.6;">
+                        • Reduce tu ganancia objetivo<br>
+                        • Ajusta el ${isCredit ? 'crédito' : 'débito'} inicial<br>
+                        • Ganancia máxima posible: <strong style="color: #22c55e;">~${Math.abs(boxWidthPoints - initialAmount).toFixed(2)} pts</strong>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultFormula').innerHTML = `
+                <div class="formula-title">📊 Parámetros actuales:</div>
+                <div class="formula-line">Ancho: ${strikeWidth} puntos = $${boxValue.toFixed(2)}</div>
+                <div class="formula-line">${isCredit ? 'Crédito' : 'Débito'} Inicial: ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})</div>
+            `;
+            document.getElementById('resultInfo').innerHTML = '';
+            
+            // Agregar shake a los inputs relevantes
+            if (inputs.targetAmount.value) {
+                inputs.targetAmount.classList.add('error-shake');
+                setTimeout(() => inputs.targetAmount.classList.remove('error-shake'), 500);
+            }
+            if (inputs.initialAmount.value) {
+                inputs.initialAmount.classList.add('error-shake');
+                setTimeout(() => inputs.initialAmount.classList.remove('error-shake'), 500);
+            }
+        }
+    </script>
+</body>
+</html>
