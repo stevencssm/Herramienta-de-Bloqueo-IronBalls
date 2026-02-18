@@ -1,1495 +1,703 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>IronBalls - Herramienta de Bloqueo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #0a1628;
-            color: #fff;
-            min-height: 100vh;
-            padding: 12px;
-        }
-
-        .container {
-            max-width: 950px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .logo {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .header-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .header-version {
-            font-size: 10px;
-            color: #64748b;
-            margin-left: 4px;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 12px;
-            margin-bottom: 16px;
-            text-align: center;
-            padding: 0 8px;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        @media (max-width: 768px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header-title {
-                font-size: 14px;
-            }
-            
-            .logo {
-                width: 32px;
-                height: 32px;
-                font-size: 16px;
-            }
-            
-            body {
-                padding: 8px;
-            }
-        }
-
-        .card {
-            background: #0f1c2e;
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid #1e293b;
-        }
-
-        .card-header {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-
-        .spread-types-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .spread-types-grid {
-                gap: 6px;
-            }
-        }
-
-        .spread-type {
-            background: #1e293b;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            padding: 12px 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .spread-type:hover {
-            background: #243447;
-        }
-
-        .spread-type.active {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: #3b82f6;
-        }
-
-        .spread-icon {
-            font-size: 20px;
-            margin-bottom: 6px;
-        }
-
-        .spread-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #cbd5e1;
-        }
-
-        .spread-sublabel {
-            font-size: 10px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        .input-section {
-            margin-bottom: 20px;
-        }
-
-        .step-hidden {
-            display: none;
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        .step-visible {
-            display: block;
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        /* Animaciones de Entrada */
-        @keyframes bounceIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.3) translateY(-20px);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.05);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Animación para el resultado final - Counter */
-        @keyframes countUp {
-            from {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* Success Flash */
-        @keyframes successFlash {
-            0%, 100% {
-                background: rgba(34, 197, 94, 0.05);
-            }
-            50% {
-                background: rgba(34, 197, 94, 0.2);
-            }
-        }
-
-        .success-flash {
-            animation: successFlash 0.6s ease-in-out;
-        }
-
-        /* Error Shake */
-        @keyframes errorShake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-
-        .error-shake {
-            animation: errorShake 0.5s;
-            border-color: #ef4444 !important;
-        }
-
-        /* Animación de Check Mark */
-        @keyframes checkMark {
-            0% {
-                stroke-dashoffset: 100;
-            }
-            100% {
-                stroke-dashoffset: 0;
-            }
-        }
-
-        /* Progress Bar */
-        @keyframes progressBar {
-            from {
-                width: 0%;
-            }
-            to {
-                width: 100%;
-            }
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 4px;
-            background: #1e293b;
-            border-radius: 2px;
-            margin-bottom: 16px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-
-        /* Gradient Flow Background */
-        @keyframes gradientFlow {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        .card {
-            background: linear-gradient(135deg, #0f1c2e, #1a2332, #0f1c2e);
-            background-size: 200% 200%;
-            animation: gradientFlow 8s ease infinite;
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid #1e293b;
-        }
-
-        /* Breathing Animation para el big display */
-        @keyframes breathing {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-            }
-            50% {
-                transform: scale(1.02);
-                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.2);
-            }
-        }
-
-        .big-display {
-            background: linear-gradient(135deg, #1e293b, #0f1c2e);
-            border: 2px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 16px;
-            animation: breathing 3s ease-in-out infinite;
-        }
-
-        /* Counter Animation para números */
-        .big-value {
-            font-size: 40px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1;
-            margin-bottom: 4px;
-            animation: countUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        /* Check mark SVG animation */
-        .check-mark {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 16px;
-        }
-
-        .check-mark-circle {
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            animation: checkMarkCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-
-        .check-mark-check {
-            stroke-dasharray: 48;
-            stroke-dashoffset: 48;
-            animation: checkMarkCheck 0.3s 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-
-        @keyframes checkMarkCircle {
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-
-        @keyframes checkMarkCheck {
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-
-        /* Loading Spinner */
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #334155;
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            display: inline-block;
-            margin-left: 8px;
-        }
-
-        /* Flip animation para cambio de unidades */
-        @keyframes flipIn {
-            from {
-                transform: perspective(400px) rotateX(90deg);
-                opacity: 0;
-            }
-            to {
-                transform: perspective(400px) rotateX(0deg);
-                opacity: 1;
-            }
-        }
-
-        .flip-in {
-            animation: flipIn 0.4s ease-out;
-        }
-
-        /* Glow effect para resultado final */
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 5px rgba(34, 197, 94, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 30px rgba(34, 197, 94, 0.2);
-            }
-        }
-
-        .result-panel.success {
-            animation: glow 2s ease-in-out infinite;
-        }
-
-        .step-description {
-            background: rgba(59, 130, 246, 0.1);
-            border-left: 3px solid #3b82f6;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-
-        .step-description strong {
-            color: #60a5fa;
-        }
-
-        .input-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            display: block;
-            font-weight: 500;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        input[type="number"], input[type="text"] {
-            flex: 1;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 12px;
-            color: #fff;
-            font-size: 16px;
-            -webkit-appearance: none;
-            transition: all 0.2s;
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            input[type="number"], input[type="text"] {
-                font-size: 16px;
-                padding: 14px 12px;
-            }
-        }
-
-        input[type="number"]:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: #243447;
-        }
-
-        input[type="number"]::placeholder, input[type="text"]::placeholder {
-            color: #475569;
-        }
-
-        input.readonly {
-            background: #0f1c2e;
-            border-color: #1e293b;
-            cursor: not-allowed;
-            font-weight: 700;
-            font-size: 18px;
-            color: #fff;
-        }
-
-        .input-prefix {
-            color: #64748b;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .strike-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .big-display {
-            background: linear-gradient(135deg, #1e293b, #0f1c2e);
-            border: 2px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .big-label {
-            font-size: 11px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .big-value {
-            font-size: 40px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .big-currency {
-            font-size: 28px;
-            color: #64748b;
-        }
-
-        @media (max-width: 768px) {
-            .big-display {
-                padding: 16px;
-                margin-bottom: 12px;
-            }
-            
-            .big-value {
-                font-size: 36px;
-            }
-            
-            .big-currency {
-                font-size: 24px;
-            }
-        }
-
-        .result-panel {
-            background: #0f1c2e;
-            border-radius: 12px;
-            padding: 0;
-            border: 1px solid #1e293b;
-            overflow: hidden;
-        }
-
-        .result-header {
-            background: linear-gradient(135deg, #1e293b, #0f1c2e);
-            padding: 16px 20px;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .result-title {
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .result-value-large {
-            font-size: 36px;
-            font-weight: 700;
-            color: #22c55e;
-            line-height: 1;
-        }
-
-        .result-value-large.negative {
-            color: #ef4444;
-        }
-
-        .result-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        .result-badge.credit {
-            background: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .result-badge.debit {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .result-body {
-            padding: 20px;
-        }
-
-        .result-steps {
-            background: rgba(59, 130, 246, 0.05);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .result-step {
-            margin-bottom: 12px;
-            line-height: 1.6;
-            font-size: 14px;
-            color: #cbd5e1;
-        }
-
-        .result-step:last-child {
-            margin-bottom: 0;
-        }
-
-        .result-step strong {
-            color: #fff;
-        }
-
-        .result-step-number {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background: rgba(59, 130, 246, 0.2);
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #60a5fa;
-            margin-right: 8px;
-        }
-
-        .formula-box {
-            background: #1e293b;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 13px;
-            color: #94a3b8;
-            font-family: 'Courier New', monospace;
-        }
-
-        .formula-title {
-            color: #60a5fa;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-        }
-
-        .formula-line {
-            padding: 4px 0;
-            border-left: 2px solid #334155;
-            padding-left: 12px;
-            margin: 4px 0;
-        }
-
-        .formula-result {
-            color: #22c55e;
-            font-weight: 600;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .info-item {
-            background: #1e293b;
-            border-radius: 8px;
-            padding: 12px;
-        }
-
-        .info-item-label {
-            font-size: 11px;
-            color: #64748b;
-            margin-bottom: 4px;
-        }
-
-        .info-item-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        #results {
-            display: none;
-        }
-
-        #results.visible {
-            display: block;
-        }
-
-        .spread-structure {
-            background: rgba(100, 116, 139, 0.1);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-        }
-
-        .spread-structure-title {
-            font-size: 11px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .spread-structure-item {
-            font-size: 13px;
-            color: #cbd5e1;
-            padding: 4px 0;
-        }
-
-        .spread-structure-item strong {
-            color: #fff;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronBalls — Herramienta de Bloqueo v2.2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #08090d;
+    --bg-card: #10111a;
+    --bg-card-hover: #151725;
+    --bg-input: #181a28;
+    --bg-surface: #1e2035;
+    --border: #262940;
+    --border-subtle: #1e2038;
+    --text-primary: #ebedf5;
+    --text-secondary: #8b90a8;
+    --text-muted: #555878;
+    --accent-blue: #5b8cff;
+    --accent-blue-glow: rgba(91, 140, 255, 0.18);
+    --accent-green: #3ee0a5;
+    --accent-green-glow: rgba(62, 224, 165, 0.18);
+    --accent-red: #ff7b7b;
+    --accent-red-glow: rgba(255, 123, 123, 0.18);
+    --accent-amber: #ffcb45;
+    --accent-amber-glow: rgba(255, 203, 69, 0.18);
+    --accent-purple: #b49bff;
+    --accent-purple-glow: rgba(180, 155, 255, 0.18);
+    --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px; --radius-xl: 28px;
+    --shadow-glow: 0 0 80px rgba(91, 140, 255, 0.1);
+    --shadow-card: 0 4px 24px rgba(0,0,0,.3);
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+  .bg-mesh { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(74,124,255,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.04) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 50% 50%, rgba(52,211,153,0.03) 0%, transparent 60%); animation: meshShift 20s ease-in-out infinite alternate; }
+  @keyframes meshShift { 0% { opacity:.7 } 50% { opacity:1 } 100% { opacity:.7 } }
+  .bg-grid { position: fixed; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 60px 60px; }
+
+  .app { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 40px; animation: fadeDown .8s ease-out; }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px) } to { opacity:1; transform:translateY(0) } }
+  .header-logo { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .logo-icon { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 20px rgba(74,124,255,0.3); animation: pulse 3s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 4px 20px rgba(74,124,255,0.3) } 50% { box-shadow: 0 4px 30px rgba(74,124,255,0.5) } }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--text-primary), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header-sub { font-size: .88rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+  .version-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .7rem; font-weight: 600; color: var(--accent-blue); background: var(--accent-blue-glow); border: 1px solid rgba(74,124,255,.2); margin-top: 10px; letter-spacing: .05em; }
+
+  /* PDT context banner */
+  .pdt-banner { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 28px; font-size: .82rem; color: var(--text-secondary); line-height: 1.65; animation: fadeUp .6s ease-out; position: relative; overflow: hidden; }
+  .pdt-banner::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple)); border-radius: 3px 0 0 3px; }
+  .pdt-banner strong { color: var(--text-primary); }
+
+  /* Progress */
+  .progress-bar { display: flex; gap: 6px; margin-bottom: 32px; padding: 0 4px; animation: fadeDown .6s ease-out; }
+  .progress-step { flex: 1; height: 3px; border-radius: 3px; background: var(--border); transition: background .4s ease; }
+  .progress-step.done { background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); }
+  .progress-step.current { background: linear-gradient(90deg, var(--accent-blue), transparent); }
+
+  /* Cards */
+  .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; transition: var(--transition); animation: fadeUp .6s ease-out backwards; box-shadow: var(--shadow-card); }
+  .card:nth-child(1){animation-delay:.05s} .card:nth-child(2){animation-delay:.1s} .card:nth-child(3){animation-delay:.15s} .card:nth-child(4){animation-delay:.2s} .card:nth-child(5){animation-delay:.25s} .card:nth-child(6){animation-delay:.3s}
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
+  .card:hover { border-color: rgba(74,124,255,.15); background: var(--bg-card-hover); }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(74,124,255,.3), transparent); opacity:0; transition: opacity var(--transition); }
+  .card:hover::before { opacity:1; }
+
+  .step-label { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); color: white; font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-secondary); }
+  .step-hint { font-size: .82rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; padding-left: 38px; }
+
+  /* Options */
+  .opts { display: grid; gap: 10px; }
+  .opts.c2 { grid-template-columns: 1fr 1fr; }
+  .opts.c3 { grid-template-columns: 1fr 1fr 1fr; }
+  .opts.c4 { grid-template-columns: 1fr 1fr; }
+
+  .opt { position: relative; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 16px 14px; cursor: pointer; transition: all .25s ease; text-align: center; overflow: hidden; }
+  .opt:hover { border-color: rgba(74,124,255,.3); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+  .opt.on { border-color: var(--accent-blue); background: linear-gradient(135deg, rgba(74,124,255,.08), rgba(167,139,250,.05)); box-shadow: 0 0 24px var(--accent-blue-glow); }
+  .opt.on-green { border-color: var(--accent-green); background: linear-gradient(135deg, rgba(52,211,153,.08), rgba(52,211,153,.03)); box-shadow: 0 0 24px var(--accent-green-glow); }
+  .opt.on-red { border-color: var(--accent-red); background: linear-gradient(135deg, rgba(248,113,113,.08), rgba(248,113,113,.03)); box-shadow: 0 0 24px var(--accent-red-glow); }
+  .opt.on-amber { border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(251,191,36,.08), rgba(251,191,36,.03)); box-shadow: 0 0 24px var(--accent-amber-glow); }
+
+  .opt-dot { width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: transform .3s ease; }
+  .opt:hover .opt-dot { transform: scale(1.15); }
+  .opt.on .opt-dot, .opt.on-green .opt-dot, .opt.on-red .opt-dot, .opt.on-amber .opt-dot { transform: scale(1.2); }
+  .dg { background: rgba(52,211,153,.15); color: var(--accent-green); }
+  .db { background: rgba(74,124,255,.15); color: var(--accent-blue); }
+  .da { background: rgba(251,191,36,.15); color: var(--accent-amber); }
+  .dr { background: rgba(248,113,113,.15); color: var(--accent-red); }
+  .dp { background: rgba(167,139,250,.15); color: var(--accent-purple); }
+  .opt-name { font-size: .9rem; font-weight: 600; margin-bottom: 2px; }
+  .opt-sub { font-size: .72rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* Inputs */
+  .irow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .irow.s1 { grid-template-columns: 1fr; }
+  .ig { position: relative; }
+  .ig label { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .ig input { width: 100%; padding: 14px 16px; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; font-weight: 500; outline: none; transition: all .25s ease; }
+  .ig input::placeholder { color: var(--text-muted); font-weight: 400; }
+  .ig input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-blue-glow); }
+  .ig input:hover:not(:focus) { border-color: rgba(74,124,255,.25); }
+  .itag { position: absolute; right: 12px; top: 50%; transform: translateY(20%); font-size: .7rem; font-weight: 600; color: var(--text-muted); background: var(--bg-card); padding: 2px 8px; border-radius: 4px; pointer-events: none; }
+
+  .spread-info { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 10px; background: rgba(74,124,255,.05); border-radius: var(--radius-sm); font-size: .82rem; color: var(--text-secondary); opacity: 0; transform: translateY(-8px); transition: all .4s ease; }
+  .spread-info.vis { opacity: 1; transform: translateY(0); }
+  .spread-info strong { font-family: 'JetBrains Mono', monospace; color: var(--accent-blue); }
+
+  /* Target input area */
+  .target-area { margin-top: 16px; overflow: hidden; max-height: 0; opacity: 0; transition: max-height .5s cubic-bezier(.4,0,.2,1), opacity .4s ease; }
+  .target-area.vis { max-height: 200px; opacity: 1; }
+  .target-ctx { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: .82rem; margin-bottom: 14px; line-height: 1.5; }
+  .target-ctx.cg { background: rgba(62,224,165,.1); color: var(--accent-green); border: 1px solid rgba(62,224,165,.18); }
+  .target-ctx.cr { background: rgba(255,123,123,.1); color: var(--accent-red); border: 1px solid rgba(255,123,123,.18); }
+
+  /* Asset */
+  .asset-box { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: var(--radius-md); }
+  .asset-tick { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; }
+  .asset-name { font-size: .82rem; color: var(--text-muted); }
+  .asset-live { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--accent-green); font-weight: 600; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); animation: blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:.3 } }
+
+  /* Results */
+  .results { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 40px 28px; margin-top: 32px; text-align: center; position: relative; overflow: hidden; animation: fadeUp .7s ease-out backwards; animation-delay: .4s; transition: all .5s ease; box-shadow: var(--shadow-card); }
+  .results.has { border-color: rgba(91,140,255,.3); box-shadow: var(--shadow-glow), 0 8px 40px rgba(0,0,0,.4); }
+  .results::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(91,140,255,.05), transparent 60%); pointer-events:none; }
+
+  .r-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: var(--text-muted); margin-bottom: 8px; }
+  .r-sub { font-size: .82rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 16px; }
+  .r-val { font-family: 'JetBrains Mono', monospace; font-size: 3.5rem; font-weight: 700; line-height: 1; margin-bottom: 6px; transition: all .5s ease; }
+  .r-val.pos { color: var(--accent-green); }
+  .r-val.neg { color: var(--accent-red); }
+  .r-val.neu { color: var(--text-muted); }
+  .r-unit { font-size: 1.4rem; font-weight: 500; opacity: .6; margin-left: 4px; }
+  .r-conv { font-size: .85rem; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Divider */
+  .r-div { display: flex; align-items: center; gap: 12px; margin: 24px 0 20px; color: var(--text-muted); }
+  .r-div::before, .r-div::after { content:''; flex:1; height:1px; background: var(--border); }
+  .r-div span { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; white-space: nowrap; }
+
+  /* Target box */
+  .t-box { background: var(--bg-input); border-radius: var(--radius-md); padding: 22px; border: 1px solid var(--border); opacity: 0; transform: translateY(8px); transition: all .5s ease; }
+  .t-box.vis { opacity: 1; transform: translateY(0); }
+  .t-lbl { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+  .t-lbl.lg { color: var(--accent-green); }
+  .t-lbl.lr { color: var(--accent-red); }
+  .t-val { font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 700; line-height: 1; }
+  .t-val.vg { color: var(--accent-green); }
+  .t-val.vr { color: var(--accent-red); }
+  .t-sub { font-size: .78rem; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+  .t-expl { font-size: .78rem; color: var(--text-secondary); margin-top: 10px; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 10px; }
+
+  /* Educational Formula */
+  .edu { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); opacity: 0; transform: translateY(12px); transition: all .5s ease; }
+  .edu.vis { opacity: 1; transform: translateY(0); }
+  .edu-title { display: flex; align-items: center; gap: 8px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); margin-bottom: 18px; }
+  .edu-title .ei { width: 22px; height: 22px; border-radius: 6px; background: rgba(167,139,250,.12); color: var(--accent-purple); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+  .edu-vars { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .ev { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; font-size: .76rem; font-family: 'JetBrains Mono', monospace; background: var(--bg-input); border: 1px solid var(--border); }
+  .ev-icon { font-size: .85rem; }
+  .ev-name { color: var(--text-muted); font-family: 'DM Sans', sans-serif; }
+  .ev-val { color: var(--text-primary); font-weight: 600; }
+
+  .edu-steps { display: flex; flex-direction: column; }
+  .es { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.03); }
+  .es:last-child { border-bottom: none; }
+  .es-n { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; background: var(--bg-input); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 700; color: var(--text-muted); margin-top: 1px; }
+  .es-n.done { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border: none; color: white; }
+  .es-b { flex: 1; }
+  .es-d { font-size: .82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 6px; }
+  .es-eq { font-family: 'JetBrains Mono', monospace; font-size: .85rem; padding: 10px 14px; border-radius: 8px; background: var(--bg-surface); border-left: 3px solid var(--border); color: var(--text-primary); line-height: 1.7; }
+  .es-eq.final { background: rgba(91,140,255,.08); border-left-color: var(--accent-blue); font-size: .92rem; font-weight: 600; }
+
+  .edu-tip { margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-sm); font-size: .82rem; line-height: 1.6; }
+  .edu-tip.tg { background: rgba(62,224,165,.1); border: 1px solid rgba(62,224,165,.18); color: var(--accent-green); }
+  .edu-tip.ta { background: rgba(255,203,69,.08); border: 1px solid rgba(255,203,69,.15); color: var(--accent-amber); }
+  .edu-tip.tb { background: rgba(91,140,255,.1); border: 1px solid rgba(91,140,255,.18); color: var(--accent-blue); }
+  .edu-tip.tr { background: rgba(255,123,123,.1); border: 1px solid rgba(255,123,123,.18); color: var(--accent-red); }
+
+  /* Empty */
+  .empty { padding: 24px 0; }
+  .empty-ico { font-size: 2.5rem; margin-bottom: 12px; opacity: .4; }
+  .empty-txt { font-size: .9rem; color: var(--text-muted); }
+
+  /* Alerts */
+  .alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: .8rem; line-height: 1.5; margin-top: 14px; animation: pop .3s ease-out; }
+  .alert.warn { background: rgba(255,123,123,.1); border: 1px solid rgba(255,123,123,.2); color: var(--accent-red); }
+  .alert.info { background: rgba(91,140,255,.08); border: 1px solid rgba(91,140,255,.15); color: var(--accent-blue); }
+  .alert-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+  /* Lock operation name badge */
+  .lock-badge { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: .82rem; font-weight: 500; margin-bottom: 16px; line-height: 1.5; width: 100%; }
+  .lock-badge.lb-credit { background: rgba(62,224,165,.1); border: 1px solid rgba(62,224,165,.18); color: var(--text-secondary); }
+  .lock-badge.lb-debit { background: rgba(180,155,255,.1); border: 1px solid rgba(180,155,255,.18); color: var(--text-secondary); }
+  .lock-badge .lb-arrow { font-size: 1.1rem; }
+  .lock-badge .lb-name { color: var(--text-primary); }
+
+  /* Ripple */
+  .ripple { position: absolute; border-radius: 50%; background: rgba(74,124,255,.3); transform: scale(0); animation: rpl .6s ease-out; pointer-events: none; }
+  @keyframes rpl { to { transform: scale(4); opacity: 0; } }
+  @keyframes pop { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+  .pop { animation: pop .4s ease-out; }
+
+  @media (max-width: 480px) {
+    .app { padding: 20px 14px 60px; }
+    .card { padding: 20px; }
+    .r-val { font-size: 2.6rem; }
+    .t-val { font-size: 1.8rem; }
+    .opts.c4 { grid-template-columns: 1fr 1fr; }
+    .opts.c3 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.6rem; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">⚙️</div>
-            <div>
-                <span class="header-title">Herramienta de Bloqueo IronBalls</span>
-                <span class="header-version">v1.0</span>
-            </div>
-        </div>
-        <div class="subtitle">Calcula el crédito/débito necesario para asegurar ganancia o limitar pérdida</div>
-        
-        <!-- Barra de Progreso -->
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar" style="width: 14%;"></div>
-        </div>
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
 
-        <div class="main-grid">
-            <!-- Panel Izquierdo - Inputs -->
-            <div class="card">
-                <div class="card-header">Parámetros de la Operación</div>
-
-                <!-- Paso 1: Tipo de Spread -->
-                <div class="input-section step-visible" id="step1">
-                    <label class="input-label">Paso 1: Tipo de Spread Inicial</label>
-                    <div class="step-description">
-                        <strong>¿Qué hacer?</strong> Selecciona el tipo de spread que abriste inicialmente. <strong>PCS/CCS</strong> si recibiste crédito, <strong>PDS/CDS</strong> si pagaste débito.
-                    </div>
-                    <div class="spread-types-grid">
-                        <div class="spread-type active" id="typePCS" data-type="pcs">
-                            <div class="spread-icon">🟢</div>
-                            <div class="spread-label">Put Credit</div>
-                            <div class="spread-sublabel">PCS</div>
-                        </div>
-                        <div class="spread-type" id="typeCCS" data-type="ccs">
-                            <div class="spread-icon">🔵</div>
-                            <div class="spread-label">Call Credit</div>
-                            <div class="spread-sublabel">CCS</div>
-                        </div>
-                        <div class="spread-type" id="typePDS" data-type="pds">
-                            <div class="spread-icon">🟠</div>
-                            <div class="spread-label">Put Debit</div>
-                            <div class="spread-sublabel">PDS</div>
-                        </div>
-                        <div class="spread-type" id="typeCDS" data-type="cds">
-                            <div class="spread-icon">🔴</div>
-                            <div class="spread-label">Call Debit</div>
-                            <div class="spread-sublabel">CDS</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Paso 2: Unidad de medida -->
-                <div class="input-section step-hidden" id="step2">
-                    <label class="input-label">Paso 2: Unidad de Medida</label>
-                    <div class="step-description">
-                        <strong>¿Qué hacer?</strong> Elige si prefieres trabajar en <strong>Puntos</strong> (como en el mercado: 1.80 pts) o en <strong>Dólares</strong> directos ($180).
-                    </div>
-                    <div class="spread-types-grid" style="grid-template-columns: 1fr 1fr;">
-                        <div class="spread-type active" id="unitPoints" data-unit="points" style="padding: 10px;">
-                            <div class="spread-icon">📊</div>
-                            <div class="spread-label">Puntos</div>
-                            <div class="spread-sublabel">1 pt = $100</div>
-                        </div>
-                        <div class="spread-type" id="unitDollars" data-unit="dollars" style="padding: 10px;">
-                            <div class="spread-icon">💵</div>
-                            <div class="spread-label">Dólares</div>
-                            <div class="spread-sublabel">Directos</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Paso 3: Activo -->
-                <div class="input-section step-hidden" id="step3">
-                    <label class="input-label">Paso 3: Activo</label>
-                    <div class="step-description">
-                        <strong>Activo:</strong> Esta herramienta está optimizada para <strong>SPX</strong> (S&P 500 Index).
-                    </div>
-                    <input type="text" value="SPX" readonly class="readonly">
-                </div>
-
-                <!-- Paso 4: Strikes -->
-                <div class="input-section step-hidden" id="step4">
-                    <label class="input-label">Paso 4: Strikes del Spread Inicial</label>
-                    <div class="step-description">
-                        <strong>¿Qué hacer?</strong> Ingresa los strikes de tu spread. <strong>Buy</strong> es el strike que compraste, <strong>Sell</strong> es el que vendiste.
-                    </div>
-                    <div class="strike-grid">
-                        <div>
-                            <input type="number" id="strikeBuy" placeholder="Ej: 6930" step="0.5" inputmode="decimal">
-                            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Compra</div>
-                        </div>
-                        <div>
-                            <input type="number" id="strikeSell" placeholder="Ej: 6935" step="0.5" inputmode="decimal">
-                            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Venta</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Paso 5: Ancho del Spread -->
-                <div class="input-section step-hidden" id="step5">
-                    <label class="input-label">Paso 5: Ancho del Spread</label>
-                    <div class="step-description">
-                        <strong>Calculado automáticamente:</strong> La diferencia entre tus strikes determina el valor máximo del spread.
-                    </div>
-                    <div class="input-row">
-                        <input type="number" id="strikeWidth" placeholder="5" value="5" step="0.5" readonly style="background: #0a1628; border-color: #1e293b;">
-                        <span class="input-prefix">pts = <span style="color: #22c55e;" id="boxValueDisplay">$500</span></span>
-                    </div>
-                </div>
-
-                <!-- Paso 6: Ganancia Objetivo -->
-                <div class="input-section step-hidden" id="step6">
-                    <label class="input-label">Paso 6: Objetivo del Bloqueo</label>
-                    <div class="step-description">
-                        <strong>¿Qué hacer?</strong> Selecciona si quieres <strong>asegurar una ganancia</strong> (si vas ganando) o <strong>limitar una pérdida</strong> (si vas perdiendo).
-                    </div>
-                    
-                    <!-- Selector de objetivo -->
-                    <div class="spread-types-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
-                        <div class="spread-type active" id="objectiveProfit" data-objective="profit" style="padding: 10px;">
-                            <div class="spread-icon">💰</div>
-                            <div class="spread-label">Asegurar Ganancia</div>
-                            <div class="spread-sublabel">Vas ganando</div>
-                        </div>
-                        <div class="spread-type" id="objectiveLoss" data-objective="loss" style="padding: 10px;">
-                            <div class="spread-icon">🛡️</div>
-                            <div class="spread-label">Limitar Pérdida</div>
-                            <div class="spread-sublabel">Vas perdiendo</div>
-                        </div>
-                    </div>
-
-                    <label class="input-label" id="targetLabel" style="margin-top: 16px;">Monto (puntos)</label>
-                    <input type="number" id="targetAmount" placeholder="0.50" step="0.01" inputmode="decimal">
-                    <div style="font-size: 10px; color: #64748b; margin-top: 4px;" id="targetHint">0.50 puntos = $50</div>
-                </div>
-
-                <!-- Paso 7: Crédito/Débito Recibido -->
-                <div class="input-section step-hidden" id="step7">
-                    <label class="input-label" id="amountLabel">Paso 7: Crédito Recibido (puntos)</label>
-                    <div class="step-description">
-                        <strong>¿Qué hacer?</strong> Ingresa el <strong id="amountDesc">crédito que recibiste</strong> cuando abriste tu spread inicial.
-                    </div>
-                    <input type="number" id="initialAmount" placeholder="1.80" step="0.01" inputmode="decimal">
-                    <div style="font-size: 10px; color: #64748b; margin-top: 4px;" id="amountHint">1 punto = $100</div>
-                </div>
-            </div>
-
-            <!-- Panel Derecho - Resultados -->
-            <div>
-                <!-- Crédito/Débito Requerido -->
-                <div class="big-display">
-                    <div class="big-label" id="bigLabel">Crédito Requerido</div>
-                    <div class="big-value">
-                        <span id="requiredAmount">0.00</span>
-                        <span class="big-currency" id="bigUnit">pts</span>
-                    </div>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 8px;" id="bigConversion">1 punto = $100</div>
-                </div>
-
-                <!-- Resultado del Bloqueo -->
-                <div id="results">
-                    <div class="result-panel">
-                        <div class="result-header">
-                            <div class="result-title" id="resultTitle">Estructura del Bloqueo</div>
-                            <div class="result-value-large" id="resultValue">$0.00</div>
-                            <div class="result-badge credit" id="resultBadge">GANANCIA ASEGURADA</div>
-                        </div>
-                        <div class="result-body">
-                            <div class="spread-structure" id="spreadStructure"></div>
-                            <div class="result-steps" id="resultSteps"></div>
-                            <div class="formula-box" id="resultFormula"></div>
-                            <div class="info-grid" id="resultInfo"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="emptyState" class="empty-state">
-                    <div class="empty-icon">🎯</div>
-                    Ingresa los strikes y parámetros<br>para calcular tu bloqueo
-                </div>
-            </div>
-        </div>
+<div class="app">
+  <header class="header">
+    <div class="header-logo">
+      <div class="logo-icon">🔒</div>
+      <h1>IronBalls</h1>
     </div>
+    <p class="header-sub">Calcula cuánto necesitas para bloquear ganancia o limitar pérdida<br>sin cerrar tu posición intradía</p>
+    <span class="version-badge">v2.2 — LOCK TOOL</span>
+  </header>
 
-    <script>
-        let currentSpreadType = 'pcs'; // pcs, ccs, pds, cds
-        let currentUnit = 'points'; // points or dollars
-        let currentObjective = 'profit'; // profit or loss
+  <div class="pdt-banner">
+    <strong>¿Para qué sirve?</strong> Si tienes una cuenta con menos de $25k (regla PDT), no puedes hacer day trades ilimitados. El bloqueo te permite asegurar ganancias o limitar pérdidas abriendo un spread opuesto, sin necesidad de cerrar la posición original el mismo día.
+  </div>
 
-        // Elementos del DOM
-        const inputs = {
-            strikeBuy: document.getElementById('strikeBuy'),
-            strikeSell: document.getElementById('strikeSell'),
-            strikeWidth: document.getElementById('strikeWidth'),
-            targetAmount: document.getElementById('targetAmount'),
-            initialAmount: document.getElementById('initialAmount')
-        };
+  <div class="progress-bar">
+    <div class="progress-step" id="p1"></div>
+    <div class="progress-step" id="p2"></div>
+    <div class="progress-step" id="p3"></div>
+    <div class="progress-step" id="p4"></div>
+    <div class="progress-step" id="p5"></div>
+    <div class="progress-step" id="p6"></div>
+  </div>
 
-        const spreadTypes = document.querySelectorAll('[data-type]');
-        const unitButtons = document.querySelectorAll('[data-unit]');
-        const unitPoints = document.getElementById('unitPoints');
-        const unitDollars = document.getElementById('unitDollars');
-        const objectiveProfit = document.getElementById('objectiveProfit');
-        const objectiveLoss = document.getElementById('objectiveLoss');
-        const amountLabel = document.getElementById('amountLabel');
-        const targetLabel = document.getElementById('targetLabel');
-        const amountHint = document.getElementById('amountHint');
-        const targetHint = document.getElementById('targetHint');
-        const bigLabel = document.getElementById('bigLabel');
-        const bigUnit = document.getElementById('bigUnit');
-        const bigConversion = document.getElementById('bigConversion');
-        const requiredAmount = document.getElementById('requiredAmount');
-        const boxValueDisplay = document.getElementById('boxValueDisplay');
-        const resultsDiv = document.getElementById('results');
-        const emptyState = document.getElementById('emptyState');
-        const resultTitle = document.getElementById('resultTitle');
+  <!-- 1: Type -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">1</div><span class="step-title">Tipo de Spread Inicial</span></div>
+    <p class="step-hint"><strong style="color:var(--accent-green)">PCS/CCS</strong> = recibiste crédito · <strong style="color:var(--accent-amber)">PDS/CDS</strong> = pagaste débito</p>
+    <div class="opts c4">
+      <button class="opt" onclick="pick(this,'spread','PCS')"><div class="opt-dot dg">↑</div><div class="opt-name">Put Credit</div><div class="opt-sub">PCS · Alcista</div></button>
+      <button class="opt" onclick="pick(this,'spread','CCS')"><div class="opt-dot dr">↓</div><div class="opt-name">Call Credit</div><div class="opt-sub">CCS · Bajista</div></button>
+      <button class="opt" onclick="pick(this,'spread','PDS')"><div class="opt-dot dr">↓</div><div class="opt-name">Put Debit</div><div class="opt-sub">PDS · Bajista</div></button>
+      <button class="opt" onclick="pick(this,'spread','CDS')"><div class="opt-dot dg">↑</div><div class="opt-name">Call Debit</div><div class="opt-sub">CDS · Alcista</div></button>
+    </div>
+  </div>
 
-        // Event listeners para unidad de medida
-        unitPoints.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentUnit = 'points';
-            unitPoints.classList.add('active');
-            unitDollars.classList.remove('active');
-            updateUnitLabels();
-            checkSteps();
-            calculate();
-        });
+  <!-- 2: Unit -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">2</div><span class="step-title">Unidad de Medida</span></div>
+    <p class="step-hint">Puntos del mercado (1 pt = $100) o Dólares directos.</p>
+    <div class="opts c2">
+      <button class="opt on" onclick="pick(this,'unit','pts')"><div class="opt-dot dp">📊</div><div class="opt-name">Puntos</div><div class="opt-sub">1 pt = $100</div></button>
+      <button class="opt" onclick="pick(this,'unit','usd')"><div class="opt-dot dg">💵</div><div class="opt-name">Dólares</div><div class="opt-sub">USD directos</div></button>
+    </div>
+  </div>
 
-        unitDollars.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentUnit = 'dollars';
-            unitDollars.classList.add('active');
-            unitPoints.classList.remove('active');
-            updateUnitLabels();
-            checkSteps();
-            calculate();
-        });
+  <!-- 3: Asset -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">3</div><span class="step-title">Activo</span></div>
+    <p class="step-hint">Optimizado para opciones sobre índices.</p>
+    <div class="asset-box">
+      <div><div class="asset-tick">SPX</div><div class="asset-name">S&P 500 Index</div></div>
+      <div class="asset-live"><div class="live-dot"></div>ACTIVO</div>
+    </div>
+  </div>
 
-        // Event listeners para objetivo (ganancia vs pérdida)
-        objectiveProfit.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentObjective = 'profit';
-            objectiveProfit.classList.add('active');
-            objectiveLoss.classList.remove('active');
-            updateObjectiveLabels();
-            calculate();
-        });
+  <!-- 4: Strikes -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">4</div><span class="step-title">Strikes del Spread Inicial</span></div>
+    <p class="step-hint"><strong style="color:var(--accent-green)">Buy</strong> = strike que compraste · <strong style="color:var(--accent-red)">Sell</strong> = strike que vendiste</p>
+    <div class="irow">
+      <div class="ig"><label>Compra (Buy)</label><input type="number" id="inBuy" placeholder="6930" oninput="calc()"><span class="itag">BUY</span></div>
+      <div class="ig"><label>Venta (Sell)</label><input type="number" id="inSell" placeholder="6935" oninput="calc()"><span class="itag">SELL</span></div>
+    </div>
+    <div class="spread-info" id="spInfo">Ancho del spread: <strong id="spW">—</strong></div>
+    <div id="alertStrikes"></div>
+  </div>
 
-        objectiveLoss.addEventListener('click', function(e) {
-            e.stopPropagation();
-            currentObjective = 'loss';
-            objectiveLoss.classList.add('active');
-            objectiveProfit.classList.remove('active');
-            updateObjectiveLabels();
-            calculate();
-        });
+  <!-- 5: Premium -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">5</div><span class="step-title" id="premTitle">Prima Recibida / Pagada</span></div>
+    <p class="step-hint" id="premHint">Ingresa la prima de tu spread original.</p>
+    <div class="irow s1">
+      <div class="ig"><label id="premLbl">Prima</label><input type="number" id="inPrem" placeholder="1.80" step="0.01" oninput="calc()"><span class="itag" id="premTag">PTS</span></div>
+    </div>
+    <div id="alertPrem"></div>
+  </div>
 
-        // Event listeners para tipo de spread
-        spreadTypes.forEach(type => {
-            // Solo agregar listener si tiene data-type (no data-unit)
-            if (type.dataset.type && !type.dataset.unit) {
-                type.addEventListener('click', function() {
-                    // Solo remover active de los spread types, no de los unit buttons
-                    document.querySelectorAll('[data-type]:not([data-unit])').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentSpreadType = this.dataset.type;
-                    updateLabels();
-                    checkSteps();
-                    calculate();
-                });
-            }
-        });
+  <!-- 6: Goal -->
+  <div class="card">
+    <div class="step-label"><div class="step-num">6</div><span class="step-title">Objetivo del Bloqueo</span></div>
+    <p class="step-hint">¿Quieres asegurar ganancia, limitar pérdida, o llegar a break-even?</p>
+    <div class="opts c3">
+      <button class="opt" onclick="pickGoal(this,'profit')"><div class="opt-dot dg">💰</div><div class="opt-name">Asegurar Ganancia</div><div class="opt-sub">Lock profit</div></button>
+      <button class="opt" onclick="pickGoal(this,'loss')"><div class="opt-dot dr">🛡️</div><div class="opt-name">Limitar Pérdida</div><div class="opt-sub">Max loss cap</div></button>
+      <button class="opt on-amber" onclick="pickGoal(this,'be')"><div class="opt-dot da">⚖️</div><div class="opt-name">Break-Even</div><div class="opt-sub">$0 neto</div></button>
+    </div>
+    <div class="target-area" id="tArea">
+      <div class="target-ctx cg" id="tCtx">Ingresa la ganancia mínima que deseas asegurar.</div>
+      <div class="irow s1"><div class="ig"><label id="tLbl">Ganancia Deseada</label><input type="number" id="inTarget" placeholder="0.50" step="0.01" oninput="calc()"><span class="itag" id="tTag">PTS</span></div></div>
+      <div id="alertTarget"></div>
+    </div>
+  </div>
 
-        // Event listeners para inputs
-        Object.values(inputs).forEach(input => {
-            input.addEventListener('input', function() {
-                checkSteps();
-                calculate();
-            });
-        });
+  <!-- Results -->
+  <div class="results" id="resPanel">
+    <div id="empty" class="empty"><div class="empty-ico">🎯</div><p class="empty-txt">Completa los parámetros para calcular tu bloqueo</p></div>
+    <div id="resContent" style="display:none">
+      <div class="r-label" id="rLabel">CRÉDITO PARA BLOQUEO</div>
+      <div class="r-sub" id="rSub"></div>
+      <div class="r-val neu" id="rVal">0.00<span class="r-unit" id="rUnit">pts</span></div>
+      <div class="r-conv" id="rConv"></div>
 
-        // Calcular ancho cuando cambian los strikes
-        inputs.strikeBuy.addEventListener('input', updateWidth);
-        inputs.strikeSell.addEventListener('input', updateWidth);
+      <div id="tWrap" style="display:none">
+        <div class="r-div"><span id="tDivLbl">Tu Objetivo</span></div>
+        <div class="t-box" id="tBox">
+          <div class="t-lbl lg" id="tBoxLbl"></div>
+          <div class="t-val vg" id="tBoxVal"></div>
+          <div class="t-sub" id="tBoxSub"></div>
+          <div class="t-expl" id="tBoxExpl"></div>
+        </div>
+      </div>
 
-        // Calcular al cargar la página
-        window.addEventListener('load', function() {
-            updateLabels();
-            updateUnitLabels();
-            checkSteps();
-            calculate();
-        });
+      <div class="edu" id="edu">
+        <div class="edu-title"><div class="ei">ƒ</div>CÓMO SE CALCULA</div>
+        <div class="edu-vars" id="eduVars"></div>
+        <div class="edu-steps" id="eduSteps"></div>
+        <div id="eduTip"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // Función para verificar qué pasos mostrar
-        function checkSteps() {
-            let completedSteps = 0;
-            const totalSteps = 7;
-            
-            // Paso 1 siempre visible (tipo de spread)
-            showStep('step1');
-            completedSteps++;
-            
-            // Paso 2: mostrar después de seleccionar tipo
-            if (currentSpreadType) {
-                showStep('step2');
-                completedSteps++;
-            }
-            
-            // Paso 3: mostrar después de seleccionar unidad
-            if (currentUnit) {
-                showStep('step3');
-                completedSteps++;
-            }
-            
-            // Paso 4: mostrar después de paso 3 (activo siempre es SPX)
-            showStep('step4');
-            completedSteps++;
-            
-            // Paso 5: mostrar cuando ambos strikes estén ingresados
-            const buy = parseFloat(inputs.strikeBuy.value);
-            const sell = parseFloat(inputs.strikeSell.value);
-            if (buy && sell) {
-                showStep('step5');
-                completedSteps++;
-            } else {
-                hideStep('step5');
-            }
-            
-            // Paso 6: mostrar cuando el ancho esté calculado
-            const width = parseFloat(inputs.strikeWidth.value);
-            if (width && buy && sell) {
-                showStep('step6');
-                completedSteps++;
-            } else {
-                hideStep('step6');
-            }
-            
-            // Paso 7: mostrar cuando la ganancia objetivo esté ingresada
-            const target = parseFloat(inputs.targetAmount.value);
-            if (target && width) {
-                showStep('step7');
-                completedSteps++;
-                // Actualizar descripción dinámica según tipo
-                const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
-                document.getElementById('amountDesc').textContent = isCredit ? 
-                    'crédito que recibiste' : 'débito que pagaste';
-            } else {
-                hideStep('step7');
-            }
-            
-            // Actualizar barra de progreso
-            updateProgressBar(completedSteps, totalSteps);
-        }
+<script>
+const S = { type:null, unit:'pts', buy:null, sell:null, prem:null, goal:'be', target:null };
 
-        function updateProgressBar(completed, total) {
-            const percentage = (completed / total) * 100;
-            const progressBar = document.getElementById('progressBar');
-            if (progressBar) {
-                progressBar.style.width = percentage + '%';
-            }
-        }
+function pick(btn, group, val) {
+  ripple(btn);
+  btn.parentElement.querySelectorAll('.opt').forEach(b => { b.className = 'opt'; });
+  btn.classList.add('opt','on');
+  if (group === 'spread') S.type = val;
+  if (group === 'unit') {
+    S.unit = val;
+    document.getElementById('premTag').textContent = val==='pts'?'PTS':'USD';
+    document.getElementById('inPrem').placeholder = val==='pts'?'1.80':'180';
+    document.getElementById('tTag').textContent = val==='pts'?'PTS':'USD';
+    document.getElementById('inTarget').placeholder = val==='pts'?'0.50':'50';
+  }
+  prog(); calc();
+}
 
-        function showStep(stepId) {
-            const step = document.getElementById(stepId);
-            if (step && step.classList.contains('step-hidden')) {
-                step.classList.remove('step-hidden');
-                step.classList.add('step-visible');
-            } else if (step && !step.classList.contains('step-visible')) {
-                step.classList.add('step-visible');
-            }
-        }
+function pickGoal(btn, goal) {
+  ripple(btn);
+  btn.parentElement.querySelectorAll('.opt').forEach(b => { b.className = 'opt'; });
+  btn.classList.add('opt');
+  const cm = { profit:'on-green', loss:'on-red', be:'on-amber' };
+  btn.classList.add(cm[goal]);
+  S.goal = goal;
 
-        function hideStep(stepId) {
-            const step = document.getElementById(stepId);
-            if (step) {
-                step.classList.remove('step-visible');
-                step.classList.add('step-hidden');
-            }
-        }
+  const area = document.getElementById('tArea');
+  const ctx = document.getElementById('tCtx');
+  const lbl = document.getElementById('tLbl');
+  const inp = document.getElementById('inTarget');
 
-        function updateUnitLabels() {
-            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
-            const spreadName = isCredit ? 'Crédito' : 'Débito';
-            
-            // Agregar animación flip al cambiar unidad
-            const bigValue = document.querySelector('.big-value');
-            if (bigValue) {
-                bigValue.classList.add('flip-in');
-                setTimeout(() => bigValue.classList.remove('flip-in'), 400);
-            }
-            
-            if (currentUnit === 'points') {
-                updateObjectiveLabels(); // Usa función que considera el objetivo
-                targetHint.textContent = '0.50 puntos = $50';
-                amountLabel.textContent = `${spreadName} Recibido (puntos)`;
-                amountHint.textContent = '1 punto = $100';
-                bigLabel.textContent = `${spreadName} Requerido`;
-                bigUnit.textContent = 'pts';
-                bigConversion.textContent = '1 punto = $100';
-                
-                inputs.targetAmount.placeholder = '0.50';
-                inputs.initialAmount.placeholder = '1.80';
-            } else {
-                updateObjectiveLabels(); // Usa función que considera el objetivo
-                targetHint.textContent = '$50 = 0.50 puntos';
-                amountLabel.textContent = `${spreadName} Recibido ($)`;
-                amountHint.textContent = '$100 = 1 punto';
-                bigLabel.textContent = `${spreadName} Requerido`;
-                bigUnit.textContent = '$';
-                bigConversion.textContent = '$100 = 1 punto';
-                
-                inputs.targetAmount.placeholder = '50';
-                inputs.initialAmount.placeholder = '180';
-            }
-        }
+  if (goal === 'be') {
+    area.classList.remove('vis'); S.target = 0;
+  } else if (goal === 'profit') {
+    area.classList.add('vis');
+    ctx.className = 'target-ctx cg';
+    ctx.textContent = '💰 Ingresa la ganancia mínima que deseas asegurar en el peor escenario.';
+    lbl.textContent = 'Ganancia Deseada';
+    inp.placeholder = S.unit==='pts'?'0.50':'50';
+  } else {
+    area.classList.add('vis');
+    ctx.className = 'target-ctx cr';
+    ctx.textContent = '🛡️ Ingresa la pérdida máxima que estás dispuesto a aceptar.';
+    lbl.textContent = 'Pérdida Máxima Aceptable';
+    inp.placeholder = S.unit==='pts'?'1.00':'100';
+  }
+  prog(); calc();
+}
 
-        function updateObjectiveLabels() {
-            const isPoints = currentUnit === 'points';
-            const unit = isPoints ? 'puntos' : 'dólares';
-            
-            if (currentObjective === 'profit') {
-                targetLabel.textContent = `Ganancia a Asegurar (${unit})`;
-            } else {
-                targetLabel.textContent = `Pérdida Máxima (${unit})`;
-            }
-        }
+function ripple(el) {
+  const r = document.createElement('span'); r.classList.add('ripple');
+  const rc = el.getBoundingClientRect(); const sz = Math.max(rc.width,rc.height);
+  r.style.width=r.style.height=sz+'px'; r.style.left='50%'; r.style.top='50%';
+  r.style.marginLeft=-(sz/2)+'px'; r.style.marginTop=-(sz/2)+'px';
+  el.appendChild(r); setTimeout(()=>r.remove(),600);
+}
 
-        function updateLabels() {
-            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
-            updateUnitLabels();
-        }
+function prog() {
+  const ok = [S.type!==null, S.unit!==null, true, S.buy!==null&&S.sell!==null, S.prem!==null&&S.prem>0, S.goal==='be'||(S.target!==null&&S.target>0)];
+  for (let i=0;i<6;i++) {
+    const el=document.getElementById('p'+(i+1)); el.className='progress-step';
+    if(ok[i]) el.classList.add('done'); else if(i>0&&ok[i-1]) el.classList.add('current');
+  }
+}
 
-        function updateWidth() {
-            const buy = parseFloat(inputs.strikeBuy.value);
-            const sell = parseFloat(inputs.strikeSell.value);
-            
-            if (buy && sell) {
-                const width = Math.abs(sell - buy);
-                inputs.strikeWidth.value = width.toFixed(1);
-                checkSteps();
-                calculate();
-            }
-        }
+function calc() {
+  const b=parseFloat(document.getElementById('inBuy').value);
+  const s=parseFloat(document.getElementById('inSell').value);
+  const p=parseFloat(document.getElementById('inPrem').value);
+  const t=parseFloat(document.getElementById('inTarget').value);
+  S.buy=isNaN(b)?null:b; S.sell=isNaN(s)?null:s; S.prem=isNaN(p)?null:p; S.target=isNaN(t)?null:t;
+  prog();
 
-        function calculate() {
-            const strikeBuy = parseFloat(inputs.strikeBuy.value);
-            const strikeSell = parseFloat(inputs.strikeSell.value);
-            const strikeWidth = parseFloat(inputs.strikeWidth.value);
-            let targetAmount = parseFloat(inputs.targetAmount.value);
-            let initialAmount = parseFloat(inputs.initialAmount.value);
+  // Clear alerts
+  document.getElementById('alertStrikes').innerHTML = '';
+  document.getElementById('alertPrem').innerHTML = '';
+  document.getElementById('alertTarget').innerHTML = '';
 
-            // Convertir a puntos si está en dólares
-            if (currentUnit === 'dollars') {
-                targetAmount = targetAmount / 100;
-                initialAmount = initialAmount / 100;
-            }
+  // Spread width
+  const info=document.getElementById('spInfo');
+  let W = 0;
+  if(S.buy!==null&&S.sell!==null) {
+    W=Math.abs(S.sell-S.buy);
+    document.getElementById('spW').textContent = S.unit==='pts' ? W+' pts ($'+(W*100)+')' : '$'+(W*100);
+    info.classList.add('vis');
 
-            // Actualizar display del valor del box
-            if (strikeWidth) {
-                const boxValue = strikeWidth * 100;
-                boxValueDisplay.textContent = '$' + boxValue.toFixed(0);
-            }
+    // Strike validations
+    if (S.buy === S.sell) {
+      showAlert('alertStrikes', 'warn', 'Los strikes de compra y venta no pueden ser iguales.');
+    } else if (W > 50) {
+      showAlert('alertStrikes', 'info', 'El ancho del spread es muy amplio (' + W + ' pts). Verifica que los strikes sean correctos.');
+    } else if (W < 1) {
+      showAlert('alertStrikes', 'warn', 'El ancho del spread es menor a 1 punto. Verifica los strikes.');
+    }
+  } else info.classList.remove('vis');
 
-            // Validar datos básicos
-            if (!strikeBuy || !strikeSell || !strikeWidth || !targetAmount || !initialAmount) {
-                resultsDiv.classList.remove('visible');
-                emptyState.style.display = 'block';
-                requiredAmount.textContent = '0.00';
-                return;
-            }
+  // Need base params
+  if(!S.type||S.buy===null||S.sell===null||S.prem===null||S.prem<=0) {
+    document.getElementById('empty').style.display='';
+    document.getElementById('resContent').style.display='none';
+    document.getElementById('resPanel').classList.remove('has');
+    return;
+  }
 
-            // Calcular valor del box en dólares
-            const boxValueDollars = strikeWidth * 100;
-            // Ancho en puntos
-            const boxWidthPoints = strikeWidth;
-            
-            // Determinar si es crédito o débito
-            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+  W = Math.abs(S.sell - S.buy);
+  const P = S.unit==='pts' ? S.prem : S.prem/100;
+  const isCredit = (S.type==='PCS'||S.type==='CCS');
 
-            // Calcular crédito/débito necesario en el spread contrario (en puntos)
-            let secondAmountPoints;
-            let calculationSteps = [];
-            
-            if (isCredit) {
-                if (currentUnit === 'points') {
-                    calculationSteps.push(`Crédito Inicial = ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})`);
-                    calculationSteps.push(`Valor del Spread = ${strikeWidth} pts = $${boxValueDollars.toFixed(2)}`);
-                    calculationSteps.push(`Ganancia Objetivo = ${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`);
-                    calculationSteps.push(`Crédito Necesario = Ganancia + Spread - Crédito Inicial`);
-                    calculationSteps.push(`Crédito Necesario = ${targetAmount.toFixed(2)} + ${boxWidthPoints.toFixed(2)} - ${initialAmount.toFixed(2)}`);
-                } else {
-                    calculationSteps.push(`Crédito Inicial = $${(initialAmount * 100).toFixed(2)} (${initialAmount.toFixed(2)} pts)`);
-                    calculationSteps.push(`Valor del Spread = $${boxValueDollars.toFixed(2)} (${strikeWidth} pts)`);
-                    calculationSteps.push(`Ganancia Objetivo = $${(targetAmount * 100).toFixed(2)} (${targetAmount.toFixed(2)} pts)`);
-                    calculationSteps.push(`Crédito Necesario = Ganancia + Spread - Crédito Inicial`);
-                    calculationSteps.push(`Crédito Necesario = $${(targetAmount * 100).toFixed(2)} + $${boxValueDollars.toFixed(2)} - $${(initialAmount * 100).toFixed(2)}`);
-                }
-                
-                secondAmountPoints = targetAmount + boxWidthPoints - initialAmount;
-                
-                if (currentUnit === 'points') {
-                    calculationSteps.push(`Crédito Necesario = ${secondAmountPoints.toFixed(2)} pts ($${(secondAmountPoints * 100).toFixed(2)})`);
-                } else {
-                    calculationSteps.push(`Crédito Necesario = $${(secondAmountPoints * 100).toFixed(2)} (${secondAmountPoints.toFixed(2)} pts)`);
-                }
-            } else {
-                if (currentUnit === 'points') {
-                    calculationSteps.push(`Débito Inicial = ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})`);
-                    calculationSteps.push(`Valor del Spread = ${strikeWidth} pts = $${boxValueDollars.toFixed(2)}`);
-                    calculationSteps.push(`Ganancia Objetivo = ${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`);
-                    calculationSteps.push(`Débito Necesario = Spread - Débito Inicial - Ganancia`);
-                    calculationSteps.push(`Débito Necesario = ${boxWidthPoints.toFixed(2)} - ${initialAmount.toFixed(2)} - ${targetAmount.toFixed(2)}`);
-                } else {
-                    calculationSteps.push(`Débito Inicial = $${(initialAmount * 100).toFixed(2)} (${initialAmount.toFixed(2)} pts)`);
-                    calculationSteps.push(`Valor del Spread = $${boxValueDollars.toFixed(2)} (${strikeWidth} pts)`);
-                    calculationSteps.push(`Ganancia Objetivo = $${(targetAmount * 100).toFixed(2)} (${targetAmount.toFixed(2)} pts)`);
-                    calculationSteps.push(`Débito Necesario = Spread - Débito Inicial - Ganancia`);
-                    calculationSteps.push(`Débito Necesario = $${boxValueDollars.toFixed(2)} - $${(initialAmount * 100).toFixed(2)} - $${(targetAmount * 100).toFixed(2)}`);
-                }
-                
-                secondAmountPoints = boxWidthPoints - initialAmount - targetAmount;
-                
-                if (currentUnit === 'points') {
-                    calculationSteps.push(`Débito Necesario = ${secondAmountPoints.toFixed(2)} pts ($${(secondAmountPoints * 100).toFixed(2)})`);
-                } else {
-                    calculationSteps.push(`Débito Necesario = $${(secondAmountPoints * 100).toFixed(2)} (${secondAmountPoints.toFixed(2)} pts)`);
-                }
-            }
+  // Premium validations
+  if (S.unit === 'pts' && S.prem >= 100) {
+    showAlert('alertPrem', 'info', 'Ingresaste ' + S.prem + ' puntos. ¿Quisiste decir $' + S.prem + ' USD? Si es así, cambia la unidad a Dólares.');
+  } else if (S.unit === 'usd' && S.prem > 0 && S.prem < 5) {
+    showAlert('alertPrem', 'info', 'Ingresaste $' + S.prem + ' USD. ¿Quisiste decir ' + S.prem + ' puntos? Si es así, cambia la unidad a Puntos.');
+  }
 
-            // Actualizar display grande
-            const displayValue = currentUnit === 'points' ? secondAmountPoints : secondAmountPoints * 100;
-            requiredAmount.textContent = displayValue.toFixed(2);
+  if (P >= W && W > 0) {
+    showAlert('alertPrem', 'warn', isCredit
+      ? 'La prima recibida (' + P.toFixed(2) + ' pts) no puede ser mayor o igual al ancho del spread (' + W + ' pts).'
+      : 'El débito pagado (' + P.toFixed(2) + ' pts) no puede ser mayor o igual al ancho del spread (' + W + ' pts).');
+    document.getElementById('empty').style.display='';
+    document.getElementById('resContent').style.display='none';
+    document.getElementById('resPanel').classList.remove('has');
+    return;
+  }
 
-            // Validar factibilidad
-            const isFeasible = secondAmountPoints > 0 && secondAmountPoints < boxWidthPoints;
+  if (P <= 0) {
+    showAlert('alertPrem', 'warn', 'La prima debe ser un valor positivo.');
+    return;
+  }
 
-            // Generar estructura del spread contrario
-            const oppositeSpread = generateOppositeSpread(strikeBuy, strikeSell);
+  let goalPts = 0;
+  if (S.goal==='profit' && S.target>0) goalPts = S.unit==='pts' ? S.target : S.target/100;
+  if (S.goal==='loss' && S.target>0) goalPts = S.unit==='pts' ? S.target : S.target/100;
 
-            // Mostrar resultados
-            if (isFeasible) {
-                displayResults(secondAmountPoints, targetAmount, boxValueDollars, initialAmount, strikeWidth,
-                              calculationSteps, oppositeSpread, strikeBuy, strikeSell, boxWidthPoints);
-            } else {
-                displayWarning(boxValueDollars, initialAmount, strikeWidth, secondAmountPoints, boxWidthPoints);
-            }
-        }
+  // Target validations
+  if (S.goal === 'profit' && goalPts > 0 && goalPts >= W) {
+    showAlert('alertTarget', 'warn', 'La ganancia deseada no puede ser mayor o igual al ancho del spread.');
+  }
+  if (S.goal === 'loss' && goalPts > 0 && goalPts >= W) {
+    showAlert('alertTarget', 'warn', 'La pérdida máxima no puede ser mayor o igual al ancho del spread.');
+  }
+  if (S.goal === 'profit' && S.unit === 'pts' && S.target >= 100) {
+    showAlert('alertTarget', 'info', 'Ingresaste ' + S.target + ' puntos. ¿Quisiste decir $' + S.target + '? Si es así, cambia a Dólares.');
+  }
+  if (S.goal !== 'be' && S.unit === 'usd' && S.target > 0 && S.target < 5) {
+    showAlert('alertTarget', 'info', 'Ingresaste $' + S.target + ' USD. ¿Quisiste decir ' + S.target + ' puntos? Si es así, cambia a Puntos.');
+  }
 
-        function generateOppositeSpread(buy, sell) {
-            // Determinar el spread contrario según el tipo
-            let opposite = {};
-            
-            switch(currentSpreadType) {
-                case 'pcs': // Put Credit Spread → Call Debit Spread
-                    opposite.type = 'Call Debit Spread (CDS)';
-                    opposite.buy = sell;
-                    opposite.sell = buy;
-                    opposite.icon = '🔴';
-                    break;
-                case 'ccs': // Call Credit Spread → Put Debit Spread
-                    opposite.type = 'Put Debit Spread (PDS)';
-                    opposite.buy = sell;
-                    opposite.sell = buy;
-                    opposite.icon = '🟠';
-                    break;
-                case 'pds': // Put Debit Spread → Call Credit Spread
-                    opposite.type = 'Call Credit Spread (CCS)';
-                    opposite.buy = sell;
-                    opposite.sell = buy;
-                    opposite.icon = '🔵';
-                    break;
-                case 'cds': // Call Debit Spread → Put Credit Spread
-                    opposite.type = 'Put Credit Spread (PCS)';
-                    opposite.buy = sell;
-                    opposite.sell = buy;
-                    opposite.icon = '🟢';
-                    break;
-            }
-            
-            return opposite;
-        }
+  document.getElementById('empty').style.display='none';
+  document.getElementById('resContent').style.display='';
+  document.getElementById('resPanel').classList.add('has');
 
-        function getSpreadTypeName() {
-            switch(currentSpreadType) {
-                case 'pcs': return 'Put Credit Spread (PCS)';
-                case 'ccs': return 'Call Credit Spread (CCS)';
-                case 'pds': return 'Put Debit Spread (PDS)';
-                case 'cds': return 'Call Debit Spread (CDS)';
-            }
-        }
+  // Lock operation names
+  const lockOps = {
+    PCS: { lock: 'Call Credit Spread (CCS)', structure: 'Iron Condor', dir: 'bajista' },
+    CCS: { lock: 'Put Credit Spread (PCS)', structure: 'Iron Condor', dir: 'alcista' },
+    PDS: { lock: 'Call Debit Spread (CDS)', structure: 'Box Spread', dir: 'alcista' },
+    CDS: { lock: 'Put Debit Spread (PDS)', structure: 'Box Spread', dir: 'bajista' }
+  };
+  const lockInfo = lockOps[S.type];
 
-        function getSpreadIcon() {
-            switch(currentSpreadType) {
-                case 'pcs': return '🟢';
-                case 'ccs': return '🔵';
-                case 'pds': return '🟠';
-                case 'cds': return '🔴';
-            }
-        }
+  // ================================================================
+  // CREDIT SPREAD LOCK (PCS/CCS):
+  //   Worst P&L = PrimaRecibida + CréditoOpuesto - Ancho
+  //   Break-even:      CréditoOpuesto = Ancho - PrimaRecibida
+  //   Lock profit G:   CréditoOpuesto = Ancho - PrimaRecibida + G
+  //   Limit loss L:    CréditoOpuesto = Ancho - PrimaRecibida - L
+  //
+  // DEBIT SPREAD LOCK (PDS/CDS):
+  //   P&L = Ancho - (DébitoOriginal + DébitoBloqueo)
+  //   Break-even:      DébitoBloqueo = Ancho - DébitoOriginal
+  //   Lock profit G:   DébitoBloqueo = Ancho - DébitoOriginal - G
+  //   Limit loss L:    DébitoBloqueo = Ancho - DébitoOriginal + L
+  // ================================================================
 
-        function displayResults(secondAmount, targetAmount, boxValue, initialAmount, strikeWidth,
-                               calculationSteps, oppositeSpread, strikeBuy, strikeSell, boxWidthPoints) {
-            emptyState.style.display = 'none';
-            resultsDiv.classList.add('visible');
-            resultsDiv.classList.add('success');
+  let required, lockLabel, lockSub;
 
-            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
-            
-            const resultValue = document.getElementById('resultValue');
-            const resultBadge = document.getElementById('resultBadge');
-            
-            // Usar el objetivo seleccionado por el usuario
-            const isProfit = currentObjective === 'profit';
-            const badgeText = isProfit ? '✓ GANANCIA ASEGURADA' : '⚠️ PÉRDIDA LIMITADA';
-            const badgeClass = isProfit ? 'credit success-flash' : 'debit';
-            
-            resultTitle.textContent = 'Estructura del Bloqueo';
-            resultValue.textContent = `${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})`;
-            resultValue.classList.remove('negative');
-            resultBadge.textContent = badgeText;
-            resultBadge.className = `result-badge ${badgeClass}`;
+  if (isCredit) {
+    if (S.goal==='be')     required = W - P;
+    if (S.goal==='profit') required = W - P + goalPts;
+    if (S.goal==='loss')   required = W - P - goalPts;
+    lockLabel = S.goal==='profit' ? 'CRÉDITO PARA ASEGURAR GANANCIA' : S.goal==='loss' ? 'CRÉDITO PARA LIMITAR PÉRDIDA' : 'CRÉDITO PARA BREAK-EVEN';
+    lockSub = 'Crédito mínimo que debes cobrar en el ' + lockInfo.lock;
+  } else {
+    if (S.goal==='be')     required = W - P;
+    if (S.goal==='profit') required = W - P - goalPts;
+    if (S.goal==='loss')   required = W - P + goalPts;
+    lockLabel = S.goal==='profit' ? 'DÉBITO MÁXIMO PARA ASEGURAR GANANCIA' : S.goal==='loss' ? 'DÉBITO MÁXIMO PARA LIMITAR PÉRDIDA' : 'DÉBITO MÁXIMO PARA BREAK-EVEN';
+    lockSub = 'Débito máximo que puedes pagar en el ' + lockInfo.lock;
+  }
 
-            // Estructura del spread con explicación detallada
-            const structureHtml = `
-                <div class="spread-structure-title">📊 Configuración Completa del Bloqueo</div>
-                
-                <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; margin-bottom: 16px; border-radius: 6px; font-size: 13px; color: #94a3b8; line-height: 1.6;">
-                    <strong style="color: #60a5fa;">💡 Qué hacer ahora:</strong><br>
-                    Para completar el bloqueo, debes abrir el <strong>Spread Contrario</strong> que se muestra abajo. Este spread neutraliza tu posición original y asegura tu ${targetAmount >= 0 ? 'ganancia' : 'pérdida limitada'}.
-                </div>
+  // Validate result
+  if (required <= 0) {
+    document.getElementById('rVal').innerHTML = 'N/A';
+    document.getElementById('rVal').className = 'r-val neu';
+    document.getElementById('rLabel').textContent = 'OBJETIVO NO ALCANZABLE';
+    document.getElementById('rSub').textContent = 'La combinación de parámetros no permite este objetivo. Ajusta la ganancia/pérdida deseada.';
+    document.getElementById('rConv').textContent = '';
+    document.getElementById('tWrap').style.display = 'none';
+    document.getElementById('edu').classList.remove('vis');
+    return;
+  }
 
-                <div class="spread-structure-item" style="background: rgba(100, 116, 139, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                    <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">✅ YA TIENES ABIERTO:</div>
-                    ${getSpreadIcon()} <strong>Spread Inicial:</strong> ${getSpreadTypeName()}<br>
-                    <div style="margin-left: 24px; margin-top: 4px; color: #94a3b8; font-size: 13px;">
-                        • Buy ${strikeBuy} / Sell ${strikeSell}<br>
-                        • ${isCredit ? 'Recibiste' : 'Pagaste'}: ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})
-                    </div>
-                </div>
-                
-                <div class="spread-structure-item" style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); padding: 12px; border-radius: 8px;">
-                    <div style="font-size: 11px; color: #22c55e; margin-bottom: 6px;">🎯 DEBES ABRIR AHORA:</div>
-                    ${oppositeSpread.icon} <strong style="color: #22c55e;">Spread Contrario:</strong> ${oppositeSpread.type}<br>
-                    <div style="margin-left: 24px; margin-top: 4px; color: #94a3b8; font-size: 13px;">
-                        • <strong>Buy ${oppositeSpread.buy}</strong> / <strong>Sell ${oppositeSpread.sell}</strong><br>
-                        • Debes ${isCredit ? 'RECIBIR' : 'PAGAR'}: <strong style="color: #22c55e;">${secondAmount.toFixed(2)} pts ($${(secondAmount * 100).toFixed(2)})</strong><br>
-                        • <span style="color: #64748b; font-size: 12px;">Esto neutraliza tu posición y bloquea el resultado</span>
-                    </div>
-                </div>
-            `;
-            document.getElementById('spreadStructure').innerHTML = structureHtml;
+  // Display
+  const uSuf = S.unit==='pts'?' pts':' USD';
+  const dVal = S.unit==='pts' ? required.toFixed(2) : (required*100).toFixed(0);
+  const vEl = document.getElementById('rVal');
+  vEl.innerHTML = dVal + '<span class="r-unit">'+uSuf+'</span>';
+  vEl.className = 'r-val pop pos';
+  document.getElementById('rLabel').textContent = lockLabel;
+  document.getElementById('rSub').textContent = lockSub;
+  document.getElementById('rConv').textContent = S.unit==='pts' ? '= $'+(required*100).toFixed(0)+' USD' : '= '+required.toFixed(2)+' pts';
 
-            // Steps con explicación más clara
-            const actionWord = isProfit ? 'Ganancia' : 'Pérdida limitada';
-            const stepsHtml = `
-                <div class="result-step">
-                    <span class="result-step-number">1</span>
-                    <strong>Spread inicial (YA ABIERTO):</strong> ${isCredit ? 'Recibiste' : 'Pagaste'} ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})
-                </div>
-                <div class="result-step">
-                    <span class="result-step-number">2</span>
-                    <strong>Spread contrario (ABRIR AHORA):</strong> ${isCredit ? 'Debes recibir' : 'Debes pagar'} <strong style="color: #22c55e;">${secondAmount.toFixed(2)} pts ($${(secondAmount * 100).toFixed(2)})</strong>
-                </div>
-                <div class="result-step">
-                    <span class="result-step-number">3</span>
-                    <strong>Al vencimiento:</strong> ${actionWord} de <strong style="color: ${isProfit ? '#22c55e' : '#f59e0b'};">${targetAmount.toFixed(2)} pts ($${(targetAmount * 100).toFixed(2)})</strong> sin importar el precio del SPX
-                </div>
-            `;
-            document.getElementById('resultSteps').innerHTML = stepsHtml;
+  // Target box
+  const tw = document.getElementById('tWrap');
+  const tb = document.getElementById('tBox');
+  if (S.goal!=='be' && S.target>0) {
+    tw.style.display=''; tb.classList.add('vis');
+    const tv = S.target;
+    if (S.goal==='profit') {
+      document.getElementById('tDivLbl').textContent='Tu Objetivo de Ganancia';
+      document.getElementById('tBoxLbl').className='t-lbl lg';
+      document.getElementById('tBoxLbl').textContent='GANANCIA MÍNIMA GARANTIZADA';
+      document.getElementById('tBoxVal').textContent='+'+(S.unit==='pts'?tv.toFixed(2)+' pts':'$'+tv.toFixed(0));
+      document.getElementById('tBoxVal').className='t-val vg';
+      document.getElementById('tBoxSub').textContent=S.unit==='pts'?'= $'+(tv*100).toFixed(0)+' USD en el peor caso':'= '+(tv/100).toFixed(2)+' pts en el peor caso';
+      if (isCredit) {
+        document.getElementById('tBoxExpl').innerHTML='Cobra al menos <strong>'+dVal+uSuf+'</strong> en el <strong>'+lockInfo.lock+'</strong> para asegurar esta ganancia.';
+      } else {
+        document.getElementById('tBoxExpl').innerHTML='Paga como máximo <strong>'+dVal+uSuf+'</strong> en el <strong>'+lockInfo.lock+'</strong> para asegurar esta ganancia.';
+      }
+    } else {
+      document.getElementById('tDivLbl').textContent='Tu Límite de Pérdida';
+      document.getElementById('tBoxLbl').className='t-lbl lr';
+      document.getElementById('tBoxLbl').textContent='PÉRDIDA MÁXIMA CON BLOQUEO';
+      document.getElementById('tBoxVal').textContent='-'+(S.unit==='pts'?tv.toFixed(2)+' pts':'$'+tv.toFixed(0));
+      document.getElementById('tBoxVal').className='t-val vr';
+      document.getElementById('tBoxSub').textContent=S.unit==='pts'?'= -$'+(tv*100).toFixed(0)+' USD máximo':'= -'+(tv/100).toFixed(2)+' pts máximo';
+      if (isCredit) {
+        document.getElementById('tBoxExpl').innerHTML='Cobra al menos <strong>'+dVal+uSuf+'</strong> en el <strong>'+lockInfo.lock+'</strong> para limitar tu pérdida.';
+      } else {
+        document.getElementById('tBoxExpl').innerHTML='Paga como máximo <strong>'+dVal+uSuf+'</strong> en el <strong>'+lockInfo.lock+'</strong> para limitar tu pérdida.';
+      }
+    }
+  } else { tw.style.display='none'; tb.classList.remove('vis'); }
 
-            // Formula con pasos de cálculo
-            let formulaHtml = '<div class="formula-title">🔢 Cálculo Detallado:</div>';
-            calculationSteps.forEach((step, index) => {
-                const isResult = index === calculationSteps.length - 1;
-                formulaHtml += `<div class="formula-line ${isResult ? 'formula-result' : ''}">${step}</div>`;
-            });
-            document.getElementById('resultFormula').innerHTML = formulaHtml;
+  // Build formula
+  document.getElementById('edu').classList.add('vis');
+  buildEdu(isCredit, W, P, required, goalPts, lockInfo);
+}
 
-            // Info Grid
-            const totalAmount = initialAmount + secondAmount;
-            const resultLabel = isProfit ? 'Ganancia Neta' : 'Pérdida Máxima';
-            const resultColor = isProfit ? '#22c55e' : '#f59e0b';
-            
-            const infoHtml = `
-                <div class="info-item">
-                    <div class="info-item-label">Ancho del Spread</div>
-                    <div class="info-item-value">${strikeWidth.toFixed(1)} pts</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">Valor del Spread</div>
-                    <div class="info-item-value">$${boxValue.toFixed(2)}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">${isCredit ? 'Crédito Total' : 'Débito Total'}</div>
-                    <div class="info-item-value">${totalAmount.toFixed(2)} pts</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-item-label">${resultLabel}</div>
-                    <div class="info-item-value" style="color: ${resultColor};">${targetAmount.toFixed(2)} pts</div>
-                </div>
-            `;
-            document.getElementById('resultInfo').innerHTML = infoHtml;
-        }
+function showAlert(containerId, type, msg) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = `<div class="alert ${type}"><span class="alert-icon">${type==='warn'?'⚠️':'💡'}</span><span>${msg}</span></div>`;
+}
 
-        function displayWarning(boxValue, initialAmount, strikeWidth, secondAmount, boxWidthPoints) {
-            emptyState.style.display = 'none';
-            resultsDiv.classList.add('visible');
-            resultsDiv.classList.remove('success');
+function buildEdu(isCredit, W, P, X, G, lockInfo) {
+  const f = v => v.toFixed(2);
+  const c = (col, txt) => `<span style="color:var(--accent-${col});font-weight:600">${txt}</span>`;
+  const spreadName = { PCS:'Put Credit Spread', CCS:'Call Credit Spread', PDS:'Put Debit Spread', CDS:'Call Debit Spread' }[S.type];
 
-            const isCredit = currentSpreadType === 'pcs' || currentSpreadType === 'ccs';
+  // Lock badge
+  const varsEl = document.getElementById('eduVars');
+  const badgeClass = isCredit ? 'lb-credit' : 'lb-debit';
+  let html = `<div class="lock-badge ${badgeClass}">
+    <span class="lb-arrow">${isCredit?'🔒':'🔒'}</span>
+    <span><span class="lb-name">${spreadName}</span> se bloquea con → <strong>${lockInfo.lock}</strong><br>
+    <span style="font-size:.75rem;font-weight:400;opacity:.8">Esto forma un <strong>${lockInfo.structure}</strong> — el spread opuesto es ${lockInfo.dir}</span></span>
+  </div>`;
 
-            resultTitle.textContent = '⚠️ Ajuste Necesario';
-            document.getElementById('resultValue').textContent = secondAmount <= 0 ? 'No factible' : `${secondAmount.toFixed(2)} pts`;
-            document.getElementById('resultValue').classList.add('negative');
-            document.getElementById('resultBadge').textContent = '⚠️ REVISAR PARÁMETROS';
-            document.getElementById('resultBadge').className = 'result-badge debit error-shake';
+  // Variables
+  html += `<div style="display:flex;flex-wrap:wrap;gap:8px">`;
+  html += `<div class="ev"><span class="ev-icon">📏</span><span class="ev-name">Ancho del Spread =</span><span class="ev-val">${f(W)}</span></div>`;
+  html += `<div class="ev"><span class="ev-icon">${isCredit?'💰':'💸'}</span><span class="ev-name">${isCredit?'Prima Recibida':'Débito Pagado'} =</span><span class="ev-val">${f(P)}</span></div>`;
+  if (S.goal==='profit') html += `<div class="ev"><span class="ev-icon">🎯</span><span class="ev-name">Ganancia Deseada =</span><span class="ev-val">${f(G)}</span></div>`;
+  if (S.goal==='loss') html += `<div class="ev"><span class="ev-icon">🛡️</span><span class="ev-name">Pérdida Máxima =</span><span class="ev-val">${f(G)}</span></div>`;
+  html += `</div>`;
+  varsEl.innerHTML = html;
 
-            document.getElementById('spreadStructure').innerHTML = '';
+  // Steps
+  const sEl = document.getElementById('eduSteps');
+  let s = '';
 
-            let warningMessage = '';
-            if (secondAmount <= 0) {
-                warningMessage = `⚠️ Con estos parámetros, el ${isCredit ? 'crédito' : 'débito'} necesario sería negativo o cero, lo cual no es factible.`;
-            } else if (secondAmount >= boxWidthPoints) {
-                warningMessage = `⚠️ El ${isCredit ? 'crédito' : 'débito'} necesario (${secondAmount.toFixed(2)} pts) supera el ancho del spread (${boxWidthPoints} pts), lo cual no es factible.`;
-            }
+  if (isCredit) {
+    s += step(1, `Abriste un <strong>${spreadName}</strong> y cobraste ${c('amber',f(P))} de prima. Tu riesgo máximo sin bloqueo:`,
+      `${c('blue','Ancho')} − ${c('amber','Prima Recibida')} = ${f(W)} − ${f(P)} = ${c('red',f(W-P))}`);
 
-            document.getElementById('resultSteps').innerHTML = `
-                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                    <div style="font-size: 16px; color: #ef4444; font-weight: 600; margin-bottom: 8px;">
-                        ${warningMessage}
-                    </div>
-                </div>
-                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 16px;">
-                    <div style="font-size: 14px; color: #60a5fa; font-weight: 600; margin-bottom: 8px;">
-                        💡 Sugerencias:
-                    </div>
-                    <div style="font-size: 13px; color: #94a3b8; line-height: 1.6;">
-                        • Reduce tu ganancia objetivo<br>
-                        • Ajusta el ${isCredit ? 'crédito' : 'débito'} inicial<br>
-                        • Ganancia máxima posible: <strong style="color: #22c55e;">~${Math.abs(boxWidthPoints - initialAmount).toFixed(2)} pts</strong>
-                    </div>
-                </div>
-            `;
+    s += step(2, `Para bloquear, abres un <strong>${lockInfo.lock}</strong> (${lockInfo.dir}) del mismo ancho. Ambos credit spreads forman un <strong>${lockInfo.structure}</strong>. En el peor caso, uno pierde el ancho completo:`,
+      `Peor caso = ${c('amber','Prima Recibida')} + ${c('green','Crédito del ' + lockInfo.lock)} − ${c('blue','Ancho')}`);
 
-            document.getElementById('resultFormula').innerHTML = `
-                <div class="formula-title">📊 Parámetros actuales:</div>
-                <div class="formula-line">Ancho: ${strikeWidth} puntos = $${boxValue.toFixed(2)}</div>
-                <div class="formula-line">${isCredit ? 'Crédito' : 'Débito'} Inicial: ${initialAmount.toFixed(2)} pts ($${(initialAmount * 100).toFixed(2)})</div>
-            `;
-            document.getElementById('resultInfo').innerHTML = '';
-            
-            // Agregar shake a los inputs relevantes
-            if (inputs.targetAmount.value) {
-                inputs.targetAmount.classList.add('error-shake');
-                setTimeout(() => inputs.targetAmount.classList.remove('error-shake'), 500);
-            }
-            if (inputs.initialAmount.value) {
-                inputs.initialAmount.classList.add('error-shake');
-                setTimeout(() => inputs.initialAmount.classList.remove('error-shake'), 500);
-            }
-        }
-    </script>
+    if (S.goal==='be') {
+      s += step(3, `Para <strong>break-even</strong>, el peor caso debe ser $0:`,
+        `${c('amber','Prima Recibida')} + ${c('green','Crédito Opuesto')} − ${c('blue','Ancho')} = 0`);
+      s += stepR(`${c('green','Crédito Opuesto')} = ${c('blue','Ancho')} − ${c('amber','Prima Recibida')}<br>${c('green','Crédito Opuesto')} = ${f(W)} − ${f(P)} = <span style="color:var(--accent-green);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    } else if (S.goal==='profit') {
+      s += step(3, `Para asegurar una ganancia de ${c('green',f(G))}, el peor caso debe igualar esa ganancia:`,
+        `${c('amber','Prima Recibida')} + ${c('green','Crédito Opuesto')} − ${c('blue','Ancho')} = ${c('green','Ganancia Deseada')}`);
+      s += stepR(`${c('green','Crédito Opuesto')} = ${c('blue','Ancho')} − ${c('amber','Prima Recibida')} + ${c('green','Ganancia Deseada')}<br>${c('green','Crédito Opuesto')} = ${f(W)} − ${f(P)} + ${f(G)} = <span style="color:var(--accent-green);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    } else {
+      s += step(3, `Para limitar la pérdida a ${c('red',f(G))}, el peor caso debe ser esa pérdida negativa:`,
+        `${c('amber','Prima Recibida')} + ${c('green','Crédito Opuesto')} − ${c('blue','Ancho')} = −${c('red','Pérdida Máxima')}`);
+      s += stepR(`${c('green','Crédito Opuesto')} = ${c('blue','Ancho')} − ${c('amber','Prima Recibida')} − ${c('red','Pérdida Máxima')}<br>${c('green','Crédito Opuesto')} = ${f(W)} − ${f(P)} − ${f(G)} = <span style="color:var(--accent-green);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    }
+
+  } else {
+    // DEBIT SPREAD
+    s += step(1, `Abriste un <strong>${spreadName}</strong> y pagaste ${c('amber',f(P))} de débito. Tu riesgo máximo es lo que pagaste:`,
+      `Riesgo original = ${c('amber','Débito Pagado')} = ${c('red',f(P))}`);
+
+    s += step(2, `Para bloquear, abres un <strong>${lockInfo.lock}</strong> (${lockInfo.dir}) del mismo ancho. Ambos debit spreads forman un <strong>${lockInfo.structure}</strong> que vale exactamente el ancho al expirar:`,
+      `Valor al expirar = ${c('blue','Ancho')} = ${c('green',f(W))}<br>Costo total = ${c('amber','Débito Original')} + ${c('purple','Débito del ' + lockInfo.lock)}<br>Ganancia = ${c('blue','Ancho')} − Costo total`);
+
+    if (S.goal==='be') {
+      s += step(3, `Para <strong>break-even</strong>, la ganancia debe ser $0:`,
+        `${c('blue','Ancho')} − ${c('amber','Débito Original')} − ${c('purple','Débito Bloqueo')} = 0`);
+      s += stepR(`${c('purple','Débito Bloqueo')} = ${c('blue','Ancho')} − ${c('amber','Débito Original')}<br>${c('purple','Débito Bloqueo')} = ${f(W)} − ${f(P)} = <span style="color:var(--accent-purple);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    } else if (S.goal==='profit') {
+      s += step(3, `Para asegurar una ganancia de ${c('green',f(G))}, el resultado debe ser al menos esa ganancia:`,
+        `${c('blue','Ancho')} − ${c('amber','Débito Original')} − ${c('purple','Débito Bloqueo')} = ${c('green','Ganancia Deseada')}`);
+      s += stepR(`${c('purple','Débito Bloqueo')} = ${c('blue','Ancho')} − ${c('amber','Débito Original')} − ${c('green','Ganancia Deseada')}<br>${c('purple','Débito Bloqueo')} = ${f(W)} − ${f(P)} − ${f(G)} = <span style="color:var(--accent-purple);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    } else {
+      s += step(3, `Para limitar la pérdida a ${c('red',f(G))}, el resultado puede ser negativo hasta ese monto:`,
+        `${c('blue','Ancho')} − ${c('amber','Débito Original')} − ${c('purple','Débito Bloqueo')} = −${c('red','Pérdida Máxima')}`);
+      s += stepR(`${c('purple','Débito Bloqueo')} = ${c('blue','Ancho')} − ${c('amber','Débito Original')} + ${c('red','Pérdida Máxima')}<br>${c('purple','Débito Bloqueo')} = ${f(W)} − ${f(P)} + ${f(G)} = <span style="color:var(--accent-purple);font-size:1.15em"><strong>${f(X)}</strong></span>`);
+    }
+  }
+  sEl.innerHTML = s;
+
+  // Tip
+  const tip = document.getElementById('eduTip');
+  const fmt = v => S.unit==='pts' ? v.toFixed(2)+' pts' : '$'+(v*100).toFixed(0);
+
+  if (S.goal==='profit') {
+    tip.innerHTML = `<div class="edu-tip tg">💡 Si ${isCredit?'cobras al menos':'pagas como máximo'} <strong>${fmt(X)}</strong> en el <strong>${lockInfo.lock}</strong>, tu ganancia queda <strong>garantizada</strong> sin importar hacia dónde se mueva el precio al expirar.</div>`;
+  } else if (S.goal==='loss') {
+    tip.innerHTML = `<div class="edu-tip ta">💡 Con ${isCredit?'un crédito':'un débito'} de <strong>${fmt(X)}</strong> en el <strong>${lockInfo.lock}</strong>, tu pérdida máxima queda limitada. ${isCredit?'Si cobras más':'Si pagas menos'}, la pérdida será aún menor.</div>`;
+  } else {
+    tip.innerHTML = `<div class="edu-tip tb">💡 Con exactamente <strong>${fmt(X)}</strong> en el <strong>${lockInfo.lock}</strong> llegas a break-even. ${isCredit?'Cualquier crédito por encima':'Cualquier débito por debajo'} de eso se convierte en <strong>ganancia garantizada</strong>.</div>`;
+  }
+}
+
+function step(n, desc, eq) {
+  return `<div class="es"><div class="es-n">${n}</div><div class="es-b"><div class="es-d">${desc}</div><div class="es-eq">${eq}</div></div></div>`;
+}
+function stepR(eq) {
+  return `<div class="es"><div class="es-n done">✓</div><div class="es-b"><div class="es-d">Despejamos el valor necesario del spread opuesto:</div><div class="es-eq final">${eq}</div></div></div>`;
+}
+
+prog();
+</script>
 </body>
 </html>
